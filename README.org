@@ -17,9 +17,130 @@
        docker-compose logs -f server
      #+END_SRC
   5. Use gh-mrva container to send request via cli
-     XX: [[file:~/work-gh/mrva/mrvacommander/notes/cli-end-to-end-detailed.org::*Run MRVA from command line][Run MRVA from command line]]
      #+BEGIN_SRC sh 
        docker exec -it mrva-docker-client-ghmrva-1 bash
 
+       # Sanity check
+       gh-mrva -h
+
+
+       #    2. Set up the configuration
+       mkdir -p ~/.config/gh-mrva
+       cat > ~/.config/gh-mrva/config.yml <<eof
+       # The following options are supported
+       # codeql_path: Path to CodeQL distribution (checkout of codeql repo)
+       # controller: NWO of the MRVA controller to use.  Not used here.
+       # list_file: Path to the JSON file containing the target repos
+
+       codeql_path: not-used/codeql-path
+       controller: not-used/mirva-controller
+       list_file: $HOME/work-gh/mrva/gh-mrva/gh-mrva-selection.json
+       eof
+
+       # Set up repository selection
+       mkdir -p ~/work-gh/mrva/gh-mrva
+       cat >   ~/work-gh/mrva/gh-mrva/gh-mrva-selection.json <<eof
+       {
+           "mirva-list": [
+               "Mbed-TLS/mbedtlsctsj17ef85",
+               "ampl/gslctsj4b270e",
+               "baidu/sofa-pbrpcctsjba3501",
+               "dlundquist/sniproxyctsj3d83e7",
+               "emscripten-core/emscriptenctsj16e1d3",
+               "hyprwm/Hyprlandctsjc2425f",
+               "lz4/lz4ctsj2479c5",
+               "medooze/media-server-nodectsj5e30b3",
+               "murat-dogan/node-datachannelctsj4edeef",
+               "pmneila/PyMCubesctsj582da6",
+               "tsl0922/ttydctsj2e3faa"
+           ]
+       }
+       eof
+
+       # Create the query
+       cat > ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql <<eof
+       /**
+        ,* @name pickfun
+        ,* @description pick function from FlatBuffers
+        ,* @kind problem
+        ,* @id cpp-flatbuffer-func
+        ,* @problem.severity warning
+        ,*/
+
+       import cpp
+
+       from Function f
+       where
+         f.getName() = "MakeBinaryRegion" or
+         f.getName() = "microprotocols_add"
+       select f, "definition of MakeBinaryRegion"
+       eof
+
+
+       # Submit the mrva job
+       # Note: QLPack does not exist. Generating synthetic one for /root/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
+       cd ~/work-gh/mrva/gh-mrva/
+       gh-mrva submit --language cpp --session mirva-session-1160    \
+                 --list mirva-list                                     \
+                 --query ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
+
+
+       # 4. Check the status
+       gh-mrva status --session mirva-session-1160
+
+
+       # 5. Download the sarif files and databases.  For the current
+       # query / database combination there are zero result hence no downloads.
+       cd ~/work-gh/mrva/gh-mrva/
+
+       # Download the sarif files and CodeQL dbs
+       gh-mrva download --session mirva-session-1160   \
+               --download-dbs                          \
+               --output-dir mirva-session-1160
+
+       # Run a query with results
+       # create the qlpack
+       cat > ~/work-gh/mrva/gh-mrva/qlpack.yml <<eof
+       library: false
+       name: codeql-dataflow-ii-cpp
+       version: 0.0.1
+       dependencies:
+         codeql/cpp-all: 0.5.3
+       eof
+
+       # create the query
+       cat > ~/work-gh/mrva/gh-mrva/Fprintf.ql <<eof
+       /**
+        ,* @name findPrintf
+        ,* @description find calls to plain fprintf
+        ,* @kind problem
+        ,* @id cpp-fprintf-call
+        ,* @problem.severity warning
+        ,*/
+
+       import cpp
+
+       from FunctionCall fc
+       where
+         fc.getTarget().getName() = "fprintf"
+       select fc, "call of fprintf"
+       eof
+
+       # Submit the next mrva job
+       cd ~/work-gh/mrva/gh-mrva/
+       gh-mrva submit --language cpp --session mirva-session-1260  \
+                 --list mirva-list                                 \
+                 --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
+
+
+       # 4. Check the status
+       gh-mrva status --session mirva-session-1260
+
+       # 5. Download the sarif files and databases.  
+       cd ~/work-gh/mrva/gh-mrva/
+       gh-mrva download --session mirva-session-1260   \
+               --download-dbs                          \
+               --output-dir mirva-session-1260
      #+END_SRC
+  6. [ ] Connect to code server, send request via gui
 
