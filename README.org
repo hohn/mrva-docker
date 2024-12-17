@@ -150,86 +150,65 @@
                --download-dbs                          \
                --output-dir mirva-session-1260
      #+END_SRC
-** TODO Connect to code server, send request via gui
-     Connect to it at http://localhost:9080/?folder=/home/coder, password is
-     =mrva=.
-     1. =ql tab > variant analysis repositories > {}=, put this into
-        =databases.json=
-        #+begin_src javascript
-          {
-              "version": 1,
-              "databases": {
-                  "variantAnalysis": {
-                      "repositoryLists": [
-                          {
-                              "name": "mirva-list",
-                              "repositories": [
-                                  "lz4/lz4ctsj2479c5",
-                                  "pmneila/PyMCubesctsj582da6",
-                                  "murat-dogan/node-datachannelctsj4edeef",
-                                  "Mbed-TLS/mbedtlsctsj17ef85",
-                                  "tsl0922/ttydctsj2e3faa",
-                                  "medooze/media-server-nodectsj5e30b3",
-                                  "ampl/gslctsj4b270e",
-                                  "baidu/sofa-pbrpcctsjba3501",
-                                  "emscripten-core/emscriptenctsj16e1d3",
-                                  "dlundquist/sniproxyctsj3d83e7",
-                                  "hyprwm/Hyprlandctsjc2425f"
-                              ]
-                          }
-                      ],
-                      "owners": [],
-                      "repositories": []
-                  }
-              },
-              "selected": {
-                  "kind": "variantAnalysisUserDefinedList",
-                  "listName": "mirva-list"
-              }
-          }
-        #+end_src
+** Send request via gui, using vs code
+   The following sequence works when run from a local vs code with the custom
+   codeql plugin.
 
-     2. =ql tab > variant analysis repositories > select mrva-list=
+   1. =ql tab > variant analysis repositories > {}=, put this into
+      =databases.json=
+      #+begin_src javascript
+        {
+            "version": 1,
+            "databases": {
+                "variantAnalysis": {
+                    "repositoryLists": [
+                        {
+                            "name": "mirva-list",
+                            "repositories": [
+                                "lz4/lz4ctsj2479c5",
+                                "pmneila/PyMCubesctsj582da6",
+                                "murat-dogan/node-datachannelctsj4edeef",
+                                "Mbed-TLS/mbedtlsctsj17ef85",
+                                "tsl0922/ttydctsj2e3faa",
+                                "medooze/media-server-nodectsj5e30b3",
+                                "ampl/gslctsj4b270e",
+                                "baidu/sofa-pbrpcctsjba3501",
+                                "emscripten-core/emscriptenctsj16e1d3",
+                                "dlundquist/sniproxyctsj3d83e7",
+                                "hyprwm/Hyprlandctsjc2425f"
+                            ]
+                        }
+                    ],
+                    "owners": [],
+                    "repositories": []
+                }
+            },
+            "selected": {
+                "kind": "variantAnalysisUserDefinedList",
+                "listName": "mirva-list"
+            }
+        }
+      #+end_src
 
-     3. select file =qldemo/simple.ql= and put =Fprintf.ql= parallel to it:
-        #+BEGIN_SRC java
-          /**
-           ,* @name findPrintf
-           ,* @description find calls to plain fprintf
-           ,* @kind problem
-           ,* @id cpp-fprintf-call
-           ,* @problem.severity warning
-           ,*/
+   2. =ql tab > variant analysis repositories > select mrva-list=
 
-          import cpp
+   3. select file =qldemo/simple.ql= and put =Fprintf.ql= parallel to it:
+      #+BEGIN_SRC java
+        /**
+         ,* @name findPrintf
+         ,* @description find calls to plain fprintf
+         ,* @kind problem
+         ,* @id cpp-fprintf-call
+         ,* @problem.severity warning
+         ,*/
 
-          from FunctionCall fc
-          where
-            fc.getTarget().getName() = "fprintf"
-          select fc, "call of fprintf"
-        #+END_SRC
+        import cpp
 
-     4. Adjust the qlpack.yml to cpp, from python.
-     5. XX: Submitting the analysis job results in the error.  
-        #+BEGIN_SRC text
-          Fetch request URL: http://github.com/repositories/0/code-scanning/codeql/variant-analyses
-          Response status: 404
-          Error: Error: Error submitting variant analysis: Not Found
-          Error submitting variant analysis: Error submitting variant analysis: Not Found
-          Error submitting variant analysis: Not Found (codeQL.runVariantAnalysisContextEditor)
-          Error: Error submitting variant analysis: Not Found
-              at submitVariantAnalysis (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:117980:13)
-              at processTicksAndRejections (node:internal/process/task_queues:95:5)
-              at _VariantAnalysisManager.runVariantAnalysis (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:119840:33)
-              at withProgress.title (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:119758:9)
-        #+END_SRC
-        This works using a local vs code, not in the code-server container.
-        Also:
-        #+BEGIN_SRC text
-          coder@6afa4f01ce55:~$ curl http://server:8080
-          server           | 2024/12/17 20:29:32 INFO Request on /
+        from FunctionCall fc
+        where
+          fc.getTarget().getName() = "fprintf"
+        select fc, "call of fprintf"
+      #+END_SRC
 
-          coder@6afa4f01ce55:~$ curl http://localhost:8080
-          curl: (7) Failed to connect to localhost port 8080 after 0 ms: Couldn't connect to server
-        #+END_SRC
-
+   4. Adjust the qlpack.yml to cpp, from python.
+   5. Submit the analysis job. 
