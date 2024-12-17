@@ -1,0 +1,35 @@
+* server image setup
+  - build container
+    #+BEGIN_SRC sh 
+      # Build the container via
+      cd ~/work-gh/mrva/mrva-docker/containers/server/
+      docker build --no-cache -t mrva-server:0.1.24 .
+
+      # Run the container in standalone mode via
+      cd ~/work-gh/mrva/mrva-docker/containers/server/
+      docker run -d mrva-server:0.1.24
+
+      docker run --env-file ../../.env.container --rm -it             \
+             -it mrva-server:0.1.24 --mode=container --loglevel=debug \
+             /bin/bash
+    #+END_SRC
+
+  - Push this container
+    #+BEGIN_SRC sh
+      # Push container
+      docker tag mrva-server:0.1.24 ghcr.io/hohn/mrva-server:0.1.24
+      docker push ghcr.io/hohn/mrva-server:0.1.24
+    #+END_SRC
+
+  - Test the registry image
+    #+BEGIN_SRC sh
+      # Test pushed container
+      docker pull ghcr.io/hohn/mrva-server:0.1.24
+      docker run                                      \
+             --env-file ../../.env.container          \
+             --name test-mrva-server                  \
+             --rm -it ghcr.io/hohn/mrva-server:0.1.24 \
+             --mode=container --loglevel=debug        \
+             /bin/bash
+    #+END_SRC
+    

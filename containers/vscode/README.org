@@ -1,0 +1,120 @@
+* MRVA VS Code server container
+  On the host:
+
+    #+BEGIN_SRC sh 
+      # Build the container via 
+      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
+      docker build --no-cache -t code-server-initialized:0.1.24 .
+
+      # Run the container in standalone mode via 
+      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
+      docker run -v ~/work-gh/mrva/vscode-codeql:/work-gh/mrva/vscode-codeql \
+             -d -p 9080:9080 code-server-initialized:0.1.24 
+    #+END_SRC
+
+  - Connect to it at http://localhost:9080/?folder=/home/coder, password is =mrva=.
+
+  Inside the container:
+
+  - Setup inside the container
+    #+BEGIN_SRC shell
+      cd 
+      export PATH=/opt/codeql:$PATH
+      codeql pack init qldemo
+      cd qldemo
+      codeql pack add codeql/python-all@1.0.6
+    #+END_SRC
+
+  - Create a new file =qldemo/simple.ql= with this query.  Open it in VS Code.
+    The plugin will download the CodeQL binaries (but never use them -- the
+    configuration redirects)
+    #+BEGIN_SRC sh 
+      cd
+      cat > qldemo/simple.ql <<eof
+      import python
+      select 42
+      eof
+    #+END_SRC
+
+  - Create database.
+    #+BEGIN_SRC sh 
+      cd ~/qldemo
+
+      cat > short.py <<EOF
+      print('hello world')
+      EOF
+      export PATH=/opt/codeql:$PATH  
+      codeql database create --language=python -s . -v short-db
+    #+END_SRC
+
+  - Set the database as default and run the query =simple.ql=
+
+  - Add the customized VS Code plugin
+    On the host
+    #+BEGIN_SRC sh 
+      cd ~/work-gh/mrva/vscode-codeql
+      git checkout mrva-standalone
+
+      # Install nvm
+      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+      # Install correct node version 
+      cd ./extensions/ql-vscode
+      nvm install
+
+      # Build the extension
+      cd ~/work-gh/mrva/vscode-codeql/extensions/ql-vscode
+      npm install
+      npm run build
+    #+END_SRC
+
+    In the container
+    #+BEGIN_SRC sh 
+      # Install extension
+      cd /work-gh/mrva/vscode-codeql/dist
+
+      /bin/code-server --force --install-extension vscode-codeql-*.vsix
+    #+END_SRC
+
+  - Capture the state of this container and create a new image from it.
+
+    #+BEGIN_SRC sh 
+      docker ps
+      # Check id column.  Use it below.
+      docker commit 2f3df413ae3b code-server-initialized:0.1.24
+      # Keep the sha
+      # sha256:1b382a721d8f3892ed22861701f19d3ed4b42a2db8d6d96b6f89fcb6e9c4161e
+      docker kill 2f3df413ae3b
+
+      # Make sure the image tag matches the sha
+      docker inspect code-server-initialized:0.1.24 |grep Id
+
+      # Run the image and check content
+      docker run --rm -d -p 9080:9080 --name test-code-server-codeql \
+             code-server-initialized:0.1.24
+    #+END_SRC
+    Again connect to it at http://localhost:9080/?folder=/home/coder, password is =mrva=.
+
+  - Push this container
+    #+BEGIN_SRC sh 
+      # Common
+      export CSI_TARGET=code-server-initialized:0.1.24
+
+      # Push container
+      docker tag ${CSI_TARGET} ghcr.io/hohn/${CSI_TARGET}
+      docker push ghcr.io/hohn/${CSI_TARGET}
+    #+END_SRC
+
+  - Test the registry image
+    #+BEGIN_SRC sh 
+      # Test pushed container
+      docker pull ghcr.io/hohn/${CSI_TARGET}
+      docker run --rm -d -p 9080:9080 --name test-code-server-codeql\
+             ghcr.io/hohn/${CSI_TARGET}
+    #+END_SRC
+    In the container, inside the running vs code:
+    - Check the plugin version number via the command
+       : codeql: copy version information
+    
+
+

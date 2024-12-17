@@ -1,0 +1,25 @@
+* containers
+  1. start the containers
+     #+BEGIN_SRC sh 
+       cd ~/work-gh/mrva/mrva-docker/
+       docker-compose down
+       docker ps
+       docker-compose -f docker-compose-demo.yml up -d 
+     #+END_SRC
+  2. View all logs
+     : docker-compose logs
+  3. follow all logs
+     : docker-compose logs -f
+  4. Follow server logging via
+     #+BEGIN_SRC sh 
+       cd ~/work-gh/mrva/mrvacommander
+       docker-compose up -d
+       docker-compose logs -f server
+     #+END_SRC
+  5. Use gh-mrva container to send request via cli
+     XX: [[file:~/work-gh/mrva/mrvacommander/notes/cli-end-to-end-detailed.org::*Run MRVA from command line][Run MRVA from command line]]
+     #+BEGIN_SRC sh 
+       docker exec -it mrva-docker-client-ghmrva-1 bash
+
+     #+END_SRC
+

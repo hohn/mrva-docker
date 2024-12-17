@@ -1,0 +1,25 @@
+* agent image setup
+  - build container
+    #+BEGIN_SRC sh 
+      # Build the container via
+      cd ~/work-gh/mrva/mrva-docker/containers/agent/
+      make mk.mrvaagent
+
+      # Run the container in standalone mode via
+      cd ~/work-gh/mrva/mrva-docker/containers/agent/
+      make magserve
+    #+END_SRC
+
+  - Push this container
+    #+BEGIN_SRC sh
+      # Push container
+      cd ~/work-gh/mrva/mrva-docker/containers/agent/
+      make mk.mag-push
+    #+END_SRC
+
+  - Test the registry image
+    #+BEGIN_SRC sh
+      # Test pushed container
+      make mag-test
+    #+END_SRC
+    
