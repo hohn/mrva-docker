@@ -216,7 +216,13 @@
               at _VariantAnalysisManager.runVariantAnalysis (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:119840:33)
               at withProgress.title (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:119758:9)
         #+END_SRC
+        This works using a local vs code, not in the code-server container.
+        Also:
+        #+BEGIN_SRC text
+          coder@6afa4f01ce55:~$ curl http://server:8080
+          server           | 2024/12/17 20:29:32 INFO Request on /
 
-
-     
+          coder@6afa4f01ce55:~$ curl http://localhost:8080
+          curl: (7) Failed to connect to localhost port 8080 after 0 ms: Couldn't connect to server
+        #+END_SRC
 
