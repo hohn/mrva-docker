@@ -1,22 +1,30 @@
-* containers
-  1. start the containers
+* Using the Containers
+** Running the containers
+   1. Start the containers
      #+BEGIN_SRC sh 
        cd ~/work-gh/mrva/mrva-docker/
        docker-compose down
        docker ps
        docker-compose -f docker-compose-demo.yml up -d 
      #+END_SRC
-  2. View all logs
-     : docker-compose logs
-  3. follow all logs
-     : docker-compose logs -f
-  4. Follow server logging via
-     #+BEGIN_SRC sh 
-       cd ~/work-gh/mrva/mrvacommander
-       docker-compose up -d
-       docker-compose logs -f server
-     #+END_SRC
-  5. Use gh-mrva container to send request via cli
+   2. View all logs
+      : docker-compose logs
+   3. Follow all logs if started with =-d=
+      : docker-compose logs -f
+   4. Follow single container, =server=, logging via
+      #+BEGIN_SRC sh 
+        cd ~/work-gh/mrva/mrvacommander
+        docker-compose up -d
+        docker-compose logs -f server
+      #+END_SRC
+   5. Cleanup in case of obscure errors (network or other)
+      #+BEGIN_SRC sh 
+        docker-compose -f docker-compose-demo.yml down --volumes --remove-orphans
+        docker network prune
+        docker-compose -f docker-compose-demo.yml up --build
+      #+END_SRC
+
+** Use gh-mrva container to send request via cli
      #+BEGIN_SRC sh 
        docker exec -it mrva-docker-client-ghmrva-1 bash
 
@@ -142,8 +150,7 @@
                --download-dbs                          \
                --output-dir mirva-session-1260
      #+END_SRC
-  6. [ ] Connect to code server, send request via gui
-
+** TODO Connect to code server, send request via gui
      Connect to it at http://localhost:9080/?folder=/home/coder, password is
      =mrva=.
      1. =ql tab > variant analysis repositories > {}=, put this into
