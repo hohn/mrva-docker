@@ -1,0 +1,29 @@
+* Container Build
+  Follow the [[file:~/work-gh/mrva/mrvahepc/README.org::*Usage Sample][Usage Sample]] in mrvahepc to set up the repository and data there.  Then:
+
+  #+BEGIN_SRC sh 
+    cd ~/work-gh/mrva/mrva-docker/containers/hepc # this directory
+    rm -fR ./mrvahepc && cp -r  ../../../mrvahepc .
+
+    # Usual build
+    docker build -t mrva-hepc-container:0.1.24 -f Dockerfile .
+
+    # Build with full output, e.g. RUN ls 
+    docker build --progress=plain --no-cache -t mrva-hepc-container:0.1.24 -f Dockerfile .
+
+    # Run standalone
+    docker run -p 8070:8070 -ti mrva-hepc-container:0.1.24
+
+    # Test server
+    curl 127.0.0.1:8070/index -o - 2>/dev/null | wc -l
+
+    curl 127.0.0.1:8070/api/v1/latest_results/codeql-all \
+         -o - 2>/dev/null | wc -l
+
+    url=$(curl 127.0.0.1:8070/api/v1/latest_results/codeql-all \
+               -o - 2>/dev/null | head -1 | jq -r .result_url)
+    echo $url
+    # http://hepc/db/db-collection.tmp/aircrack-ng-aircrack-ng-ctsj-41ebbe.zip
+
+    wget $(echo $url|sed 's|http://hepc|http://127.0.0.1:8070|g;') 
+  #+END_SRC

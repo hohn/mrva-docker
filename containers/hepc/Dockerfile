@@ -1,17 +1,12 @@
 # Use a Python 3.11 image as the base
 FROM python:3.11-slim
 
-# Install git
-RUN apt-get update && apt-get install -y git
-
 # Create the required directory structure
 RUN mkdir -p /work-gh/mrva/
 
 # Change to the directory and clone the repository
 WORKDIR /work-gh/mrva/
-RUN git clone https://github.com/hohn/mrvahepc.git && \
-    cd mrvahepc && \
-    git checkout master
+COPY ./mrvahepc mrvahepc
 
 # Change to the hepc directory
 WORKDIR /work-gh/mrva/mrvahepc
@@ -26,10 +21,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install .
 
 # Run server
-CMD ["mc-hepc-serve", 
-    "--codeql-db-dir", "db-collection.tmp",
-    "--host", "127.0.0.1",
-    "--port", "8070"
+WORKDIR /work-gh/mrva/mrvahepc
+CMD ["mc-hepc-serve",                           \
+    "--codeql-db-dir", "db-collection.tmp",     \
+    "--host", "0.0.0.0",                      \
+    "--port", "8070"                            \
     ]
 
 
