@@ -9,12 +9,12 @@ RUN mkdir -p /work-gh/mrva/
 
 # Change to the directory and clone the repository
 WORKDIR /work-gh/mrva/
-RUN git clone https://github.com/hohn/mrvacommander.git && \
-    cd mrvacommander && \
-    git checkout hohn-0.1.24-demo
+RUN git clone https://github.com/hohn/mrvahepc.git && \
+    cd mrvahepc && \
+    git checkout master
 
-# Change to the client directory
-WORKDIR /work-gh/mrva/mrvacommander/client/qldbtools/
+# Change to the hepc directory
+WORKDIR /work-gh/mrva/mrvahepc
 
 # We're in a container, so use pip globally -- no virtual env
 RUN pip install --upgrade pip
@@ -22,9 +22,15 @@ RUN pip install --upgrade pip
 # Install the required Python packages from requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install qldbtools
+# Install hepc
 RUN pip install .
 
-# Run forever
-CMD ["tail", "-f", "/dev/null"]
+# Run server
+CMD ["mc-hepc-serve", 
+    "--codeql-db-dir", "db-collection.tmp",
+    "--host", "127.0.0.1",
+    "--port", "8070"
+    ]
+
+
 
