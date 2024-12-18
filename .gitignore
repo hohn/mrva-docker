@@ -43,3 +43,6 @@ mk.*
 
 # Mac OS
 .DS_Store
+
+containers/hepc/mrvahepc/
+qpstore-data/
