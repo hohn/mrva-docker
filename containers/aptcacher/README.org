@@ -1,0 +1,31 @@
+* Use apt-cacher to speed up container builds
+
+** Pull the apt-cacher-ng Docker Image
+   #+begin_src bash
+     docker pull sameersbn/apt-cacher-ng
+   #+end_src
+
+  
+** Run the apt-cacher-ng Container
+   Start the container and expose port `3142`
+
+   #+begin_src bash
+     docker run -d --name apt-cacher-ng \
+            -p 3142:3142 \
+            sameersbn/apt-cacher-ng
+   #+end_src
+
+** Modify the Dockerfile to Use the Cache
+   In all Dockerfiles, set up APT to use the proxy provided by `apt-cacher-ng`. 
+
+   XX:
+   #+begin_src dockerfile
+     RUN echo 'Acquire::http::Proxy "http://host.docker.internal:3142";' \
+         > /etc/apt/apt.conf.d/01proxy && \
+         apt-get update && apt-get install --no-install-recommends --assume-yes \
+         unzip curl ca-certificates default-jdk && \
+         apt-get clean && rm -rf /var/lib/apt/lists/*
+   #+end_src
+
+   If you are building on the same machine, use =host.docker.internal= (on
+   macOS/Windows) or the host's IP address on Linux.
