@@ -3,21 +3,33 @@
     #+BEGIN_SRC sh 
       # Build the container via
       cd ~/work-gh/mrva/mrva-docker/containers/server/
-      docker build --no-cache -t mrva-server:0.1.24 .
+      docker build --no-cache --network host -t mrva-server:0.1.24 .
+
+      # The --network host  is needed when using ../aptcacher/
 
       # Run the container in standalone mode via
       cd ~/work-gh/mrva/mrva-docker/containers/server/
       docker run -d mrva-server:0.1.24
 
-      docker run --env-file ../../.env.container --rm -it             \
-             -it mrva-server:0.1.24 --mode=container --loglevel=debug \
-             /bin/bash
+      # Just run bash in the container
+      docker run --env-file ../../.env.container --rm -it \
+             --entrypoint /bin/bash \
+             mrva-server:0.1.24
+      # In the container:
+      '
+          ls /opt/codeql/codeql
+          /opt/codeql/codeql version |head -1
+      CodeQL command-line toolchain release 2.20.1.
+      '
+    #+END_SRC
+
+  - Tag the container.  This is sufficient for further use on the local machine.
+    #+BEGIN_SRC sh
+      docker tag mrva-server:0.1.24 ghcr.io/hohn/mrva-server:0.1.24
     #+END_SRC
 
   - Push this container
     #+BEGIN_SRC sh
-      # Push container
-      docker tag mrva-server:0.1.24 ghcr.io/hohn/mrva-server:0.1.24
       docker push ghcr.io/hohn/mrva-server:0.1.24
     #+END_SRC
 

@@ -25,11 +25,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG CODEQL_VERSION=latest
 
 # Install packages
-RUN apt-get update && apt-get install --no-install-recommends --assume-yes \
-    unzip \
-    curl \
-    ca-certificates \
-    default-jdk
+RUN echo 'Acquire::http::Proxy "http://127.0.0.1:3142";' \
+    > /etc/apt/apt.conf.d/01proxy && \
+    apt-get update && apt-get install --no-install-recommends --assume-yes \
+    unzip curl ca-certificates default-jdk && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # If the version is 'latest', lsget the latest release version from GitHub, unzip the bundle into /opt, and delete the archive
 RUN if [ "$CODEQL_VERSION" = "latest" ]; then \
@@ -51,6 +51,9 @@ ENV CODEQL_JAVA_HOME=/usr
 # Copy the built binary from the builder stage
 COPY --from=builder /app/mrvaserver-binary /usr/local/bin/mrvaserver
 
+# Copy the binary-replacement support script to the container
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
 # Run the server with the default mode set to container
-ENTRYPOINT ["/usr/local/bin/mrvaserver"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["--mode=container"]

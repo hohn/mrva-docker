@@ -7,7 +7,7 @@ mrvaagent.tmp:
 MAG_TARGET := mrva-agent:0.1.24
 mag: mk.mrvaagent
 mk.mrvaagent: mrvaagent.tmp
-	docker build --no-cache -t ${MAG_TARGET} .
+	docker build --no-cache --network host -t ${MAG_TARGET} .
 	touch $@
 
 magserve: mag
