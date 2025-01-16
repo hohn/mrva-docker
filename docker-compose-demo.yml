@@ -46,15 +46,16 @@ services:
         environment:
             - PASSWORD=mrva
      
-    # XX: new container to add
-    # hepc:
-    #     # ./containers/hepc/Dockerfile
-    #     image: ghcr.io/hohn/hepc-container:0.1.24
-    #     container_name: hepc
-    #     command: hepc-serve /data-path --console-address ":9011"
-    #    
-    #     networks:
-    #         - backend
+    hepc:
+        # ./containers/hepc/Dockerfile
+        image: ghcr.io/hohn/mrva-hepc-container:0.1.24
+        container_name: hepc
+        command: >-
+            mc-hepc-serve --codeql-db-dir db-collection.tmp
+            --host "0.0.0.0"
+            --port "8070"
+        networks:
+            - backend
 
     rabbitmq:
         image: rabbitmq:3-management
