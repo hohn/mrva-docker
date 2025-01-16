@@ -141,19 +141,19 @@
 
        # Submit a new MRVA job with the second query
        cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva submit --language cpp --session mirva-session-1360 \
+       gh-mrva submit --language cpp --session mirva-session-1460 \
                  --list mirva-list                                \
                  --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
 
        #*  Check status and download results for the second session
        # Check the status of the second session
-       gh-mrva status --session mirva-session-1360
+       gh-mrva status --session mirva-session-1460
 
        # Download SARIF files and databases for the second query
        cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva download --session mirva-session-1360   \
+       gh-mrva download --session mirva-session-1460   \
                --download-dbs                          \
-               --output-dir mirva-session-1360
+               --output-dir mirva-session-1460
      #+END_SRC
 ** Send request via gui, using vs code
    The following sequence works when run from a local vs code with the custom
@@ -217,3 +217,40 @@
 
    4. Adjust the qlpack.yml to cpp, from python.
    5. Submit the analysis job. 
+
+* Updating binaries in running container
+  To update the binaries in a running container -- mainly during development:
+  - server
+    #+BEGIN_SRC sh 
+      #* Cross-compile locally
+      cd ~/work-gh/mrva/mrvaserver
+      make msla
+
+      #* Copy the new binary
+      cd ~/work-gh/mrva/mrvaserver
+      docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+      docker cp mrvaserver server:/usr/local/bin/mrvaserver
+
+      #* Restart the binary
+      docker exec server pkill mrvaserver
+
+    #+END_SRC
+
+  - agent
+    #+BEGIN_SRC sh 
+      #* Cross-compile locally
+      cd ~/work-gh/mrva/mrvaagent
+      make mala
+
+      #* Copy the new binary
+      cd ~/work-gh/mrva/mrvaagent
+      # look for the agent's name in the process table
+      docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+      docker cp mrvaagent agent:/usr/local/bin/mrvaagent
+
+      #* Restart the binary
+      docker exec agent pkill mrvaagent
+
+    #+END_SRC
+
+
