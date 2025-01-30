@@ -5,7 +5,7 @@
        cd ~/work-gh/mrva/mrva-docker/
        docker-compose -f docker-compose-demo.yml down
        docker ps
-       docker-compose -f docker-compose-demo.yml up -d 
+       docker-compose -f docker-compose-demo.yml up 
      #+END_SRC
    2. View all logs
       : docker-compose logs
@@ -56,17 +56,11 @@
        cat > ~/work-gh/mrva/gh-mrva/gh-mrva-selection.json <<eof
        {
            "mirva-list": [
-               "Mbed-TLS/mbedtlsctsj17ef85",
-               "ampl/gslctsj4b270e",
-               "baidu/sofa-pbrpcctsjba3501",
-               "dlundquist/sniproxyctsj3d83e7",
-               "emscripten-core/emscriptenctsj16e1d3",
-               "hyprwm/Hyprlandctsjc2425f",
-               "lz4/lz4ctsj2479c5",
-               "medooze/media-server-nodectsj5e30b3",
-               "murat-dogan/node-datachannelctsj4edeef",
-               "pmneila/PyMCubesctsj582da6",
-               "tsl0922/ttydctsj2e3faa"
+               "Serial-Studio/Serial-Studio",
+               "UEFITool/UEFITool",
+               "aircrack-ng/aircrack-ng",
+               "bulk-builder/bulk-builder",
+               "tesseract/tesseract"
            ]
        }
        eof
@@ -93,20 +87,20 @@
 
        # Submit the MRVA job with the first query
        cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva submit --language cpp --session mirva-session-1160 \
+       gh-mrva submit --language cpp --session mirva-session-1172 \
                  --list mirva-list                                \
                  --query ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
 
        #*  Check status and download results for the first session
        # Check the status of the submitted session
-       gh-mrva status --session mirva-session-1160
+       gh-mrva status --session mirva-session-1172
 
        # Download SARIF files and databases if there are results.  For the current
        # query / database combination there are zero result hence no downloads
        cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva download --session mirva-session-1160   \
+       gh-mrva download --session mirva-session-1172   \
                --download-dbs                          \
-               --output-dir mirva-session-1160
+               --output-dir mirva-session-1172
 
        #*  Next, run a query with results
 
@@ -141,19 +135,19 @@
 
        # Submit a new MRVA job with the second query
        cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva submit --language cpp --session mirva-session-1460 \
+       gh-mrva submit --language cpp --session mirva-session-1461 \
                  --list mirva-list                                \
                  --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
 
        #*  Check status and download results for the second session
        # Check the status of the second session
-       gh-mrva status --session mirva-session-1460
+       gh-mrva status --session mirva-session-1461
 
        # Download SARIF files and databases for the second query
        cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva download --session mirva-session-1460   \
+       gh-mrva download --session mirva-session-1461   \
                --download-dbs                          \
-               --output-dir mirva-session-1460
+               --output-dir mirva-session-1461
      #+END_SRC
 ** Send request via gui, using vs code
    The following sequence works when run from a local vs code with the custom
@@ -170,17 +164,11 @@
                         {
                             "name": "mirva-list",
                             "repositories": [
-                                "lz4/lz4ctsj2479c5",
-                                "pmneila/PyMCubesctsj582da6",
-                                "murat-dogan/node-datachannelctsj4edeef",
-                                "Mbed-TLS/mbedtlsctsj17ef85",
-                                "tsl0922/ttydctsj2e3faa",
-                                "medooze/media-server-nodectsj5e30b3",
-                                "ampl/gslctsj4b270e",
-                                "baidu/sofa-pbrpcctsjba3501",
-                                "emscripten-core/emscriptenctsj16e1d3",
-                                "dlundquist/sniproxyctsj3d83e7",
-                                "hyprwm/Hyprlandctsjc2425f"
+                                "Serial-Studio/Serial-Studio",
+                                "UEFITool/UEFITool",
+                                "aircrack-ng/aircrack-ng",
+                                "bulk-builder/bulk-builder",
+                                "tesseract/tesseract"
                             ]
                         }
                     ],
@@ -226,9 +214,11 @@
       cd ~/work-gh/mrva/mrvaserver
       make msla
 
+      #* check for running containers
+      docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+
       #* Copy the new binary
       cd ~/work-gh/mrva/mrvaserver
-      docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
       docker cp mrvaserver server:/usr/local/bin/mrvaserver
 
       #* Restart the binary
@@ -242,10 +232,11 @@
       cd ~/work-gh/mrva/mrvaagent
       make mala
 
+      #* Look for the agent's name in the process table
+      docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+
       #* Copy the new binary
       cd ~/work-gh/mrva/mrvaagent
-      # look for the agent's name in the process table
-      docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
       docker cp mrvaagent agent:/usr/local/bin/mrvaagent
 
       #* Restart the binary

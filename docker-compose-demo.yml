@@ -56,6 +56,8 @@ services:
             --port "8070"
         networks:
             - backend
+        environment:
+            - MRVA_HEPC_ENDPOINT=http://hepc:8070
 
     rabbitmq:
         image: rabbitmq:3-management
@@ -88,6 +90,9 @@ services:
         env_file:
             - path: ./.env.container
               required: true
+        environment:
+            - MRVA_HEPC_ENDPOINT=http://hepc:8070
+            - MRVA_HEPC_CACHE_DURATION=60
         networks:
             - backend
      
@@ -120,6 +125,9 @@ services:
         env_file:
             - path: ./.env.container
               required: true
+        environment:
+            - MRVA_HEPC_ENDPOINT=http://hepc:8070
+            - MRVA_HEPC_CACHE_DURATION=60
         networks:
             - backend
    
