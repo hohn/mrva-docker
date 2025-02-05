@@ -43,6 +43,8 @@ services:
         ports:
             - "9080:9080"
         # XX: Include codeql binary in code-server (if it's not there already)
+        networks:
+            - backend
         environment:
             - PASSWORD=mrva
      

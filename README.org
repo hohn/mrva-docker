@@ -135,19 +135,20 @@
 
        # Submit a new MRVA job with the second query
        cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva submit --language cpp --session mirva-session-1461 \
-                 --list mirva-list                                \
-                 --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
+       gh-mrva submit                                      \
+               --language cpp --session mirva-session-1861 \
+               --list mirva-list                           \
+               --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
 
        #*  Check status and download results for the second session
        # Check the status of the second session
-       gh-mrva status --session mirva-session-1461
+       gh-mrva status --session mirva-session-1861
 
        # Download SARIF files and databases for the second query
        cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva download --session mirva-session-1461   \
+       gh-mrva download --session mirva-session-1861   \
                --download-dbs                          \
-               --output-dir mirva-session-1461
+               --output-dir mirva-session-1861
      #+END_SRC
 ** Send request via gui, using vs code
    The following sequence works when run from a local vs code with the custom
@@ -182,10 +183,169 @@
             }
         }
       #+end_src
+      #+BEGIN_SRC sh 
+        {
+            "version": 1,
+            "databases": {
+                "variantAnalysis": {
+                    "repositoryLists": [
+                        {
+                            "name": "mrva-list",
+                            "repositories": [
+                                "Serial-Studio/Serial-Studio",
+                                "UEFITool/UEFITool",
+                                "aircrack-ng/aircrack-ng",
+                                "bulk-builder/bulk-builder",
+                                "tesseract/tesseract"
+                            ]
+                        }
+                    ],
+                    "owners": [],
+                    "repositories": []
+                }
+            },
+            "selected": {
+                "kind": "variantAnalysisUserDefinedList",
+                "listName": "mirva-list"
+            }
+        }
 
-   2. =ql tab > variant analysis repositories > select mrva-list=
+      #+END_SRC
 
-   3. select file =qldemo/simple.ql= and put =Fprintf.ql= parallel to it:
+   2. XX: bug:
+      #+BEGIN_SRC text
+        CLI command succeeded.
+        Submitting variant analysis
+        Base URL: http://github.com
+
+
+        locally,
+            cd ~/work-gh/mrva/vscode-codeql/
+            code .
+
+        In the extension,
+            const baseUrl = getOctokitBaseUrl();
+            void extLogger.log(`Base URL: ${baseUrl}`);
+            //XX: Base URL: http://github.com
+            // should be container
+
+        In the container, 
+            coder@3209a5200724:~/.local/share/code-server/User$ cat settings.json 
+            {
+                "codeQL.runningQueries.numberOfThreads": 2,
+                "codeQL.cli.executablePath": "/opt/codeql/codeql"
+            }
+
+        log output
+
+            Fetch request URL: http://github.com/repositories/0/code-scanning/codeql/variant-analyses
+            Response status: 404
+            Error: Error: Error submitting variant analysis: Not Found
+            Error submitting variant analysis: Error submitting variant analysis: Not Found
+            Error submitting variant analysis: Not Found (codeQL.runVariantAnalysisContextEditor)
+            Error: Error submitting variant analysis: Not Found
+                at submitVariantAnalysis (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:117980:13)
+                at processTicksAndRejections (node:internal/process/task_queues:95:5)
+                at _VariantAnalysisManager.runVariantAnalysis (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:119840:33)
+                at withProgress.title (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:119758:9)
+            CodeQL extension version: 1.13.2-dev.2024.12.10.23.51.57 
+            CodeQL CLI version: 2.20.0 
+            Platform: linux arm64
+            CodeQL extension version: 1.13.2-dev.2024.12.10.23.51.57 
+            CodeQL CLI version: 2.20.0 
+            Platform: linux arm64
+            Cleaning up query history directories. Removing old entries.
+              /home/coder/.local/share/code-server/User/globalStorage/github.vscode-codeql/queries/simple.ql-sUATHR8td5IXoWzPSpoC6 is not older than 2592000 seconds. Keeping.
+            Scrubbed 0 old queries.
+
+
+        need to set url in the extension: source location
+             from 
+                const baseUrl = getOctokitBaseUrl();
+             to ?
+
+        need to set url in the extension: correct url
+             look in gh-mrva log
+
+             strace gives logs of the form
+             [pid  1509] connect(3, {sa_family=AF_INET, sin_port=htons(8080), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
+
+             err =
+             client.Get(fmt.Sprintf("http://localhost:8080/repos/%s/code-scanning/codeql/variant-analyses/%d",
+             controller, runId), &response)
+
+             tcpdump output, submit request
+                     22:13:24.627138 lo    In  IP localhost.40950 > localhost.8080: Flags [P.], seq 1:4097, ack 1, win 260, options [nop,nop,TS val 3990821087 ecr 3990821087], length 4096: HTTP: POST /repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses HTTP/1.1
+
+             curl version
+                curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses
+
+             tcpdump output, status request
+                     22:17:01.100022 lo    In  IP localhost.50836 > localhost.8080: Flags [P.], seq 1:276, ack 1, win 260, options [nop,nop,TS val 3991037557 ecr 3991037557], length 275: HTTP: GET /repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 HTTP/1.1
+
+             curl version
+                curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
+
+             curl from gh-mrva container
+                  docker exec -it mrva-docker-client-ghmrva-1 bash
+                  curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
+                  {"id":6,...}
+
+             curl from server container
+                  docker exec -it server bash
+                  curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
+                  works.  just update url/port used by vs code
+
+             curl from mrva-docker-code-server-1 container
+                  docker exec -it mrva-docker-code-server-1 bash
+                  curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
+                  no.
+
+        - Found network configuration issue
+        - both of these should work
+            docker exec -it mrva-docker-client-ghmrva-1 bash
+            ]0;root@f9ccf8c7b2da: /root@f9ccf8c7b2da:/# curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
+            riant-analyses/6 
+            {"id":6,...}
+
+            0:$ docker exec -it mrva-docker-code-server-1 bash
+            ]0;coder@3209a5200724: ~coder@3209a5200724:~$ curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
+            curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
+            curl: (7) Failed to connect to localhost port 8080 after 0 ms: Couldn't connect to server
+            ]0;coder@3209a5200724: ~coder@3209a5200724:~$ 
+        - the docker compose entries are
+
+            client-ghmrva:
+                # ./containers/ghmrva/Dockerfile
+                image: ghcr.io/hohn/client-ghmrva-container:0.1.24 
+                network_mode: "service:server" # Share the 'server' network namespace
+                environment:
+                    - SERVER_URL=http://localhost:8080  # 'localhost' now refers to 'server'
+
+            code-server:
+                # ./containers/vscode/Dockerfile
+                image: ghcr.io/hohn/code-server-initialized:0.1.24
+                ports:
+                    - "9080:9080"
+                # XX: Include codeql binary in code-server (if it's not there already)
+                environment:
+                    - PASSWORD=mrva
+     
+        fix network conf, try again
+             curl from mrva-docker-code-server-1 container
+                  docker exec -it mrva-docker-code-server-1 bash
+                  curl http://server:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
+                  works.
+
+      #+END_SRC
+      - [X] the extension is version: 1.13.2-dev.2024.12.10.23.51.57
+      - [X] network config fixed in docker-compose-demo.yml
+
+   3. [ ] update plugin url to use http://server:8080
+
+   4. =ql tab > variant analysis repositories > select mrva-list=
+
+   5. select file =qldemo/simple.ql= and put =Fprintf.ql= parallel to it:
       #+BEGIN_SRC java
         /**
          ,* @name findPrintf
@@ -203,8 +363,8 @@
         select fc, "call of fprintf"
       #+END_SRC
 
-   4. Adjust the qlpack.yml to cpp, from python.
-   5. Submit the analysis job. 
+   6. Adjust the qlpack.yml to cpp, from python.
+   7. Submit the analysis job. 
 
 * Updating binaries in running container
   To update the binaries in a running container -- mainly during development:
