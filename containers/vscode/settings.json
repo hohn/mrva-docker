@@ -1,4 +1,7 @@
 {
     "codeQL.runningQueries.numberOfThreads": 2,
-    "codeQL.cli.executablePath": "/opt/codeql/codeql"
+    "codeQL.cli.executablePath": "/opt/codeql/codeql",
+
+    "codeQL.variantAnalysis.enableGhecDr": true,
+    "github-enterprise.uri": "http://server:8080/"    
 }

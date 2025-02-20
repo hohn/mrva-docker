@@ -95,6 +95,8 @@ services:
         environment:
             - MRVA_HEPC_ENDPOINT=http://hepc:8070
             - MRVA_HEPC_CACHE_DURATION=60
+            - SERVER_HOST=server
+            - SERVER_PORT=8080
         networks:
             - backend
      

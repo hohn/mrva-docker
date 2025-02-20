@@ -29,6 +29,16 @@
      wget $(echo $url|sed 's|http://hepc|http://127.0.0.1:8070|g;') 
    #+END_SRC
 
+** Access this container from another
+   #+BEGIN_SRC sh 
+     # Enter container
+     docker exec -it mrva-docker-client-ghmrva-1 bash
+
+     # Request index 
+     curl hepc:8070/index
+   #+END_SRC
+
+
 ** Push this container
    #+BEGIN_SRC sh
      # Push container

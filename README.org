@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+#+OPTIONS: H:2 num:t \n:nil @:t ::t |:t ^:{} f:t *:t TeX:t LaTeX:t skip:nil p:nil
+
 * Using the Containers
 ** Running the containers
    1. Start the containers
@@ -13,7 +16,6 @@
       #+BEGIN_SRC sh 
         docker-compose logs -f
       #+END_SRC
-
    4. Follow single container, =server=, logging via
       #+BEGIN_SRC sh 
         cd ~/work-gh/mrva/mrvacommander
@@ -26,6 +28,43 @@
         docker network prune
         docker-compose -f docker-compose-demo.yml up --build
       #+END_SRC
+
+** Updating binaries in running container
+   To update the binaries in a running container -- mainly during development:
+   - server
+     #+BEGIN_SRC sh 
+       #* Cross-compile locally
+       cd ~/work-gh/mrva/mrvaserver
+       make msla
+
+       #* check for running containers
+       docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+
+       #* Copy the new binary
+       cd ~/work-gh/mrva/mrvaserver
+       docker cp mrvaserver server:/usr/local/bin/mrvaserver
+
+       #* Restart the binary
+       docker exec server pkill mrvaserver
+
+     #+END_SRC
+   - agent
+     #+BEGIN_SRC sh 
+       #* Cross-compile locally
+       cd ~/work-gh/mrva/mrvaagent
+       make mala
+
+       #* Look for the agent's name in the process table
+       docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+
+       #* Copy the new binary
+       cd ~/work-gh/mrva/mrvaagent
+       docker cp mrvaagent agent:/usr/local/bin/mrvaagent
+
+       #* Restart the binary
+       docker exec agent pkill mrvaagent
+
+     #+END_SRC
 
 ** Use gh-mrva container to send request via cli
      #+BEGIN_SRC sh 
@@ -154,35 +193,24 @@
    The following sequence works when run from a local vs code with the custom
    codeql plugin.
 
-   1. =ql tab > variant analysis repositories > {}=, put this into
+   Connect to vscode-codeql container at http://localhost:9080/?folder=/home/coder
+
+   1. Set 
+     : /home/coder/.local/share/code-server/User/settings.json
+     #+BEGIN_SRC sh 
+       cat > /home/coder/.local/share/code-server/User/settings.json << EOF
+       {
+           "codeQL.runningQueries.numberOfThreads": 2,
+           "codeQL.cli.executablePath": "/opt/codeql/codeql",
+
+           "codeQL.variantAnalysis.enableGhecDr": true,
+           "github-enterprise.uri": "http://server:8080/"
+       }
+       EOF
+     #+END_SRC
+
+   2. =ql tab > variant analysis repositories > {}=, put this into
       =databases.json=
-      #+begin_src javascript
-        {
-            "version": 1,
-            "databases": {
-                "variantAnalysis": {
-                    "repositoryLists": [
-                        {
-                            "name": "mirva-list",
-                            "repositories": [
-                                "Serial-Studio/Serial-Studio",
-                                "UEFITool/UEFITool",
-                                "aircrack-ng/aircrack-ng",
-                                "bulk-builder/bulk-builder",
-                                "tesseract/tesseract"
-                            ]
-                        }
-                    ],
-                    "owners": [],
-                    "repositories": []
-                }
-            },
-            "selected": {
-                "kind": "variantAnalysisUserDefinedList",
-                "listName": "mirva-list"
-            }
-        }
-      #+end_src
       #+BEGIN_SRC sh 
         {
             "version": 1,
@@ -209,143 +237,30 @@
                 "listName": "mirva-list"
             }
         }
-
       #+END_SRC
 
-   2. XX: bug:
-      #+BEGIN_SRC text
-        CLI command succeeded.
-        Submitting variant analysis
-        Base URL: http://github.com
+   3. =ql tab > variant analysis repositories > 'select' mrva-list=
 
+   4. Select file =qldemo/simple.ql= and put =Fprintf.ql= parallel to it:
+      #+BEGIN_SRC sh 
+        cat > /home/coder/qldemo/Fprintf.ql <<eof
+        /**
+         ,* @name findPrintf
+         ,* @description find calls to plain fprintf
+         ,* @kind problem
+         ,* @id cpp-fprintf-call
+         ,* @problem.severity warning
+         ,*/
 
-        locally,
-            cd ~/work-gh/mrva/vscode-codeql/
-            code .
+        import cpp
 
-        In the extension,
-            const baseUrl = getOctokitBaseUrl();
-            void extLogger.log(`Base URL: ${baseUrl}`);
-            //XX: Base URL: http://github.com
-            // should be container
-
-        In the container, 
-            coder@3209a5200724:~/.local/share/code-server/User$ cat settings.json 
-            {
-                "codeQL.runningQueries.numberOfThreads": 2,
-                "codeQL.cli.executablePath": "/opt/codeql/codeql"
-            }
-
-        log output
-
-            Fetch request URL: http://github.com/repositories/0/code-scanning/codeql/variant-analyses
-            Response status: 404
-            Error: Error: Error submitting variant analysis: Not Found
-            Error submitting variant analysis: Error submitting variant analysis: Not Found
-            Error submitting variant analysis: Not Found (codeQL.runVariantAnalysisContextEditor)
-            Error: Error submitting variant analysis: Not Found
-                at submitVariantAnalysis (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:117980:13)
-                at processTicksAndRejections (node:internal/process/task_queues:95:5)
-                at _VariantAnalysisManager.runVariantAnalysis (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:119840:33)
-                at withProgress.title (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:119758:9)
-            CodeQL extension version: 1.13.2-dev.2024.12.10.23.51.57 
-            CodeQL CLI version: 2.20.0 
-            Platform: linux arm64
-            CodeQL extension version: 1.13.2-dev.2024.12.10.23.51.57 
-            CodeQL CLI version: 2.20.0 
-            Platform: linux arm64
-            Cleaning up query history directories. Removing old entries.
-              /home/coder/.local/share/code-server/User/globalStorage/github.vscode-codeql/queries/simple.ql-sUATHR8td5IXoWzPSpoC6 is not older than 2592000 seconds. Keeping.
-            Scrubbed 0 old queries.
-
-
-        need to set url in the extension: source location
-             from 
-                const baseUrl = getOctokitBaseUrl();
-             to ?
-
-        need to set url in the extension: correct url
-             look in gh-mrva log
-
-             strace gives logs of the form
-             [pid  1509] connect(3, {sa_family=AF_INET, sin_port=htons(8080), sin_addr=inet_addr("127.0.0.1")}, 16) = -1 EINPROGRESS (Operation now in progress)
-
-             err =
-             client.Get(fmt.Sprintf("http://localhost:8080/repos/%s/code-scanning/codeql/variant-analyses/%d",
-             controller, runId), &response)
-
-             tcpdump output, submit request
-                     22:13:24.627138 lo    In  IP localhost.40950 > localhost.8080: Flags [P.], seq 1:4097, ack 1, win 260, options [nop,nop,TS val 3990821087 ecr 3990821087], length 4096: HTTP: POST /repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses HTTP/1.1
-
-             curl version
-                curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses
-
-             tcpdump output, status request
-                     22:17:01.100022 lo    In  IP localhost.50836 > localhost.8080: Flags [P.], seq 1:276, ack 1, win 260, options [nop,nop,TS val 3991037557 ecr 3991037557], length 275: HTTP: GET /repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 HTTP/1.1
-
-             curl version
-                curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
-
-             curl from gh-mrva container
-                  docker exec -it mrva-docker-client-ghmrva-1 bash
-                  curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
-                  {"id":6,...}
-
-             curl from server container
-                  docker exec -it server bash
-                  curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
-                  works.  just update url/port used by vs code
-
-             curl from mrva-docker-code-server-1 container
-                  docker exec -it mrva-docker-code-server-1 bash
-                  curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
-                  no.
-
-        - Found network configuration issue
-        - both of these should work
-            docker exec -it mrva-docker-client-ghmrva-1 bash
-            ]0;root@f9ccf8c7b2da: /root@f9ccf8c7b2da:/# curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
-            riant-analyses/6 
-            {"id":6,...}
-
-            0:$ docker exec -it mrva-docker-code-server-1 bash
-            ]0;coder@3209a5200724: ~coder@3209a5200724:~$ curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
-            curl http://localhost:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
-            curl: (7) Failed to connect to localhost port 8080 after 0 ms: Couldn't connect to server
-            ]0;coder@3209a5200724: ~coder@3209a5200724:~$ 
-        - the docker compose entries are
-
-            client-ghmrva:
-                # ./containers/ghmrva/Dockerfile
-                image: ghcr.io/hohn/client-ghmrva-container:0.1.24 
-                network_mode: "service:server" # Share the 'server' network namespace
-                environment:
-                    - SERVER_URL=http://localhost:8080  # 'localhost' now refers to 'server'
-
-            code-server:
-                # ./containers/vscode/Dockerfile
-                image: ghcr.io/hohn/code-server-initialized:0.1.24
-                ports:
-                    - "9080:9080"
-                # XX: Include codeql binary in code-server (if it's not there already)
-                environment:
-                    - PASSWORD=mrva
-     
-        fix network conf, try again
-             curl from mrva-docker-code-server-1 container
-                  docker exec -it mrva-docker-code-server-1 bash
-                  curl http://server:8080/repos/not-used/mirva-controller/code-scanning/codeql/variant-analyses/6 
-                  works.
-
+        from FunctionCall fc
+        where
+          fc.getTarget().getName() = "fprintf"
+        select fc, "call of fprintf"
+        eof
       #+END_SRC
-      - [X] the extension is version: 1.13.2-dev.2024.12.10.23.51.57
-      - [X] network config fixed in docker-compose-demo.yml
 
-   3. [ ] update plugin url to use http://server:8080
-
-   4. =ql tab > variant analysis repositories > select mrva-list=
-
-   5. select file =qldemo/simple.ql= and put =Fprintf.ql= parallel to it:
       #+BEGIN_SRC java
         /**
          ,* @name findPrintf
@@ -363,45 +278,218 @@
         select fc, "call of fprintf"
       #+END_SRC
 
-   6. Adjust the qlpack.yml to cpp, from python.
-   7. Submit the analysis job. 
+   5. Adjust the qlpack.yml to cpp, from python.
+      #+BEGIN_SRC sh 
+        cat > /home/coder/qldemo/qlpack.yml <<eof
+        library: false
+        name: codeql-dataflow-ii-cpp
+        version: 0.0.1
+        dependencies:
+          codeql/cpp-all: 0.5.3
+        eof
+      #+END_SRC
 
-* Updating binaries in running container
-  To update the binaries in a running container -- mainly during development:
-  - server
-    #+BEGIN_SRC sh 
-      #* Cross-compile locally
-      cd ~/work-gh/mrva/mrvaserver
-      make msla
+      #+BEGIN_SRC yaml
+        library: false
+        name: codeql-dataflow-ii-cpp
+        version: 0.0.1
+        dependencies:
+          codeql/cpp-all: 0.5.3
+      #+END_SRC
 
-      #* check for running containers
-      docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+      Detailed:
+      1. Delete qlpack lock file
+      2. In shell,
+         #+BEGIN_SRC sh 
+           cd ~/qldemo
+           /opt/codeql/codeql pack install
+         #+END_SRC
+      3. In GUI, 'install pack dependencies'
+      4. In GUI, 'reload windows'
 
-      #* Copy the new binary
-      cd ~/work-gh/mrva/mrvaserver
-      docker cp mrvaserver server:/usr/local/bin/mrvaserver
+   6. Submit the analysis job:
+      : Fprintf.ql > right click > run variant analysis
 
-      #* Restart the binary
-      docker exec server pkill mrvaserver
+   7. XX: bug: <2025-02-19 Wed>
+      #+BEGIN_SRC text
+        +lle1Oo44XUE87h82ShEVmzTAe02Csf9HKt7kLw2xPU0mt3mYNtbaFEsO3HQNh3tWNS7B+lFoaLw/9t2t9r1//h4P/z1P77+fP35+vP15xb//D9DrYDfAKi6AA==","repositories":["Serial-Studio/Serial-Studio","UEFITool/UEFITool","aircrack-ng/aircrack-ng","bulk-builder/bulk-builder","tesseract/tesseract"]}
+        Fetch request URL: http://server:8080/repositories/0/code-scanning/codeql/variant-analyses
+        Response status: 200
+        Response data: [object Object]
+        Variant analysis findPrintf submitted for processing
+        Variant analysis view loaded
+        Unhandled error: Error saving query history to /home/coder/.local/share/code-server/User/workspaceStorage/579340b4/GitHub.vscode-codeql/workspace-query-history.json: Internal error: exhaustivity checking failure
+        Error: Error saving query history to /home/coder/.local/share/code-server/User/workspaceStorage/579340b4/GitHub.vscode-codeql/workspace-query-history.json: Internal error: exhaustivity checking failure
+            at writeQueryHistoryToFile (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:115146:11)
+            at QueryHistoryManager.writeQueryHistory (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:115818:5)
+            at QueryHistoryManager.refreshTreeView (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:116309:5)
+            at n.value (/home/coder/.local/share/code-server/extensions/github.vscode-codeql-1.13.2-dev.2024.12.10.23.51.57/out/extension.js:115770:11)
+      #+END_SRC
 
-    #+END_SRC
+      After adding console.logs to extension.js, restart container so they take
+      effect: 
+      #+BEGIN_SRC sh 
+      docker compose -f docker-compose-demo.yml restart code-server
+      #+END_SRC
 
-  - agent
-    #+BEGIN_SRC sh 
-      #* Cross-compile locally
-      cd ~/work-gh/mrva/mrvaagent
-      make mala
+      This plugin is literally retarded.  It reports this error as fatal, but all
+      the UI functionality is present...
 
-      #* Look for the agent's name in the process table
-      docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+      - [ ] monkey-patch the writeQueryHistoryToFile() function?
+        [[file:~/work-gh/mrva/vscode-codeql/extensions/ql-vscode/src/query-history/store/query-history-store.ts::import { pathExists, remove, mkdir, writeFile, readJson } from "fs-extra";]]
+        
+        #+BEGIN_SRC text
+          . Edit the assertNever Function
+          Find the function assertNever in the extension files.
+          It's likely in:
 
-      #* Copy the new binary
-      cd ~/work-gh/mrva/mrvaagent
-      docker cp mrvaagent agent:/usr/local/bin/mrvaagent
+          swift
+          Copy
+          Edit
+          /home/coder/.local/share/code-server/extensions/github.vscode-codeql-*/out/extension.js
+          Modify:
 
-      #* Restart the binary
-      docker exec agent pkill mrvaagent
+          js
+          Copy
+          Edit
+          export function assertNever(value: never): never {
+            throw new ExhaustivityCheckingError(value);
+          }
+          to:
 
-    #+END_SRC
+          js
+          Copy
+          Edit
+          export function assertNever(value: never): never {
+            console.warn("Bypassing assertNever for value:", value);
+            return undefined as never;
+          }
+          This will log the issue instead of crashing.
+        #+END_SRC
 
+        
+   8. XX: bug:
+      #+BEGIN_SRC text
+        Could not download the results for variant analysis with id: 1. Error: request to
+        http://localhost:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoidGVzc2VyYWN0IiwiUmVwbyI6InRlc3NlcmFjdCJ9
+        failed, reason: connect ECONNREFUSED 127.0.0.1:8080
+        (codeQL.autoDownloadVariantAnalysisResult) Error: Could not download the results
+        for variant analysis with id: 1. Error: request to
+        http://localhost:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoidGVzc2VyYWN0IiwiUmVwbyI6InRlc3NlcmFjdCJ9
+        failed, reason: connect ECONNREFUSED 127.0.0.1:8080 
+      #+END_SRC
+      #+BEGIN_SRC sh 
+        #* Try download from gh-mrva: works
+        docker exec -it mrva-docker-client-ghmrva-1 bash
+
+        curl http://localhost:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoiU2VyaWFsLVN0dWRpbyIsIlJlcG8iOiJTZXJpYWwtU3R1ZGlvIn0= 
+        root@66ca60f7ce3b:/app# curl http://localhost:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoiU2VyaWFsLVN0dWRpbyIsIlJlcG8iOiJTZXJpYWwtU3R1ZGlvIn0=
+        Warning: Binary output can mess up your terminal. Use "--output -" to tell curl to output it to your terminal anyway, or
+        Warning: consider "--output <FILE>" to save to a file.
+
+        curl http://server:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoiU2VyaWFsLVN0dWRpbyIsIlJlcG8iOiJTZXJpYWwtU3R1ZGlvIn0= 
+        root@66ca60f7ce3b:/app# curl http://server:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoiU2VyaWFsLVN0dWRpbyIsIlJlcG8iOiJTZXJpYWwtU3R1ZGlvIn0=
+        Warning: Binary output can mess up your terminal. Use "--output -" to tell curl to output it to your terminal anyway, or
+        Warning: consider "--output <FILE>" to save to a file.
+
+        #* Try download from vs-codeql: works for http://server:8080
+        docker exec -it mrva-docker-code-server-1 bash
+
+        curl http://localhost:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoiU2VyaWFsLVN0dWRpbyIsIlJlcG8iOiJTZXJpYWwtU3R1ZGlvIn0= 
+        coder@924c44460749:~$ curl http://localhost:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoiU2VyaWFsLVN0dWRpbyIsIlJlcG8iOiJTZXJpYWwtU3R1ZGlvIn0=
+        curl: (7) Failed to connect to localhost port 8080 after 0 ms: Couldn't connect to server
+
+        curl http://server:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoiU2VyaWFsLVN0dWRpbyIsIlJlcG8iOiJTZXJpYWwtU3R1ZGlvIn0= 
+        coder@924c44460749:~$ curl http://server:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoiU2VyaWFsLVN0dWRpbyIsIlJlcG8iOiJTZXJpYWwtU3R1ZGlvIn0=
+        Warning: Binary output can mess up your terminal. Use "--output -" to tell
+        Warning: curl to output it to your terminal anyway, or consider "--output
+        Warning: <FILE>" to save to a file.
+
+      #+END_SRC
+
+   9. XX: ?fixed? via
+      - SERVER_HOST=server
+      - SERVER_PORT=8080
+      But have to go through the sequence again:
+      - restart
+      - patch binaries
+
+* Update Container Images
+  XX:
+  #+BEGIN_SRC sh 
+grep 'docker tag' containers/*/*.org containers/*/Makefile
+(grep "grep --color=auto -nH --null -e 'docker tag' containers/*/*")
+  #+END_SRC
+
+
+  #+BEGIN_SRC sh
+    # To snapshot a running Docker container and create a new image from it, use the
+    # following CLI sequence: 
+
+    #* Get the container IDs
+
+    docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+    # 0:$ docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+    # CONTAINER ID   IMAGE                                         NAMES
+    # 99de2a875317   ghcr.io/hohn/client-ghmrva-container:0.1.24   mrva-docker-client-ghmrva-1
+    # 081900278c0e   ghcr.io/hohn/mrva-server:0.1.24               server
+    # a23352c009fb   ghcr.io/hohn/mrva-agent:0.1.24                agent
+    # 9e9248a77957   minio/minio:RELEASE.2024-06-11T03-13-30Z      dbstore
+    # cd043e5bad77   ghcr.io/hohn/code-server-initialized:0.1.24   mrva-docker-code-server-1
+    # 783e30d6f9d0   rabbitmq:3-management                         rabbitmq
+    # d05f606b4ea0   ghcr.io/hohn/mrva-hepc-container:0.1.24       hepc
+    # 7858ccf18fad   ghcr.io/hohn/dbsdata-container:0.1.24         dbssvc
+    # 85d85484849b   minio/minio:RELEASE.2024-06-11T03-13-30Z      artifactstore
+
+    #* Commit the running containers to new images
+    # Commit the running container to a new image:
+    ( cd ~/work-gh/mrva/mrva-docker/ && rg 'docker (commit)' )
+
+    docker commit 99de2a875317 mrva-client-ghmrva:0.2.0 
+    # sha256:2eadb76a6b051200eaa395d2f815bad63f88473a16aa4c0a6cdebb114c556498
+
+    docker commit 081900278c0e   mrva-server-server:0.2.0
+    # sha256:0ec38b245021b0aea2c31eab8f75a9141cce8ee789e406cec4dabac484e03aff
+
+    docker commit a23352c009fb   mrva-server-agent:0.2.0
+    # sha256:75c6dee1dc57cda571482f7fdb2d3dd292f51e423c1733071927f21f3ab0cec5
+
+    docker commit cd043e5bad77   mrva-client-vscode:0.2.0
+    # sha256:b239d13f44637cac3601697dca49325faf123be8cf040c05b6dafe2b11504cc8
+
+    docker commit d05f606b4ea0   mrva-server-hepc:0.2.0
+    # sha256:238d39313590837587b7bd235bdfe749e18417b38e046553059295cf2064e0d2
+
+    docker commit 7858ccf18fad   mrva-server-dbsdata:0.2.0
+    # sha256:a283d69e6f9ba03856178149de95908dd6fa4b6a8cf407a1464d6cec5fa5fdc0
+
+    #* Verify the newly created images
+    docker images
+
+    #* Tag the images for a registry
+    ( cd ~/work-gh/mrva/mrva-docker/ && rg 'docker (tag)' )
+
+    docker tag mrva-client-ghmrva:0.2.0 ghcr.io/hohn/mrva-client-ghmrva:0.2.0
+    docker push ghcr.io/hohn/mrva-client-ghmrva:0.2.0
+
+    tagpushimg () {
+        name=$1
+        version=$2
+    
+        docker tag $name:$version ghcr.io/hohn/$name:$version
+        docker push ghcr.io/hohn/$name:$version
+    }
+
+    tagpushimg mrva-client-ghmrva 0.2.0
+
+    tagpushimg mrva-server-server 0.2.0
+
+    tagpushimg mrva-server-agent 0.2.0
+
+    tagpushimg mrva-client-vscode 0.2.0
+
+    tagpushimg mrva-server-hepc 0.2.0
+
+    tagpushimg mrva-server-dbsdata 0.2.0
+  #+END_SRC
 

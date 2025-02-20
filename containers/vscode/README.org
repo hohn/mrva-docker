@@ -16,7 +16,8 @@
 
   Inside the container:
 
-  - Setup inside the container
+  - [ ] Setup inside the container
+    XX: Add one for C++
     #+BEGIN_SRC shell
       cd 
       export PATH=/opt/codeql:$PATH
@@ -25,9 +26,10 @@
       codeql pack add codeql/python-all@1.0.6
     #+END_SRC
 
-  - Create a new file =qldemo/simple.ql= with this query.  Open it in VS Code.
+  - [ ] Create a new file =qldemo/simple.ql= with this query.  Open it in VS Code.
     The plugin will download the CodeQL binaries (but never use them -- the
     configuration redirects)
+    XX: c++
     #+BEGIN_SRC sh 
       cd
       cat > qldemo/simple.ql <<eof
@@ -36,7 +38,7 @@
       eof
     #+END_SRC
 
-  - Create database.
+  - [ ] Create database.
     #+BEGIN_SRC sh 
       cd ~/qldemo
 
@@ -47,9 +49,9 @@
       codeql database create --language=python -s . -v short-db
     #+END_SRC
 
-  - Set the database as default and run the query =simple.ql=
+  - [ ] Set the database as default and run the query =simple.ql=
 
-  - Add the customized VS Code plugin
+  - [ ] Add the customized VS Code plugin
     On the host
     #+BEGIN_SRC sh 
       cd ~/work-gh/mrva/vscode-codeql
@@ -76,8 +78,8 @@
       /bin/code-server --force --install-extension vscode-codeql-*.vsix
     #+END_SRC
 
-  - Capture the state of this container and create a new image from it.
-
+  - [ ] Capture the state of this container and create a new image from it.
+    
     #+BEGIN_SRC sh 
       docker ps
       # Check id column.  Use it below.
@@ -95,7 +97,7 @@
     #+END_SRC
     Again connect to it at http://localhost:9080/?folder=/home/coder, password is =mrva=.
 
-  - Push this container
+  - [ ] Push this container
     #+BEGIN_SRC sh 
       # Common
       export CSI_TARGET=code-server-initialized:0.1.24
@@ -105,7 +107,7 @@
       docker push ghcr.io/hohn/${CSI_TARGET}
     #+END_SRC
 
-  - Test the registry image
+  - [ ] Test the registry image
     #+BEGIN_SRC sh 
       # Test pushed container
       docker pull ghcr.io/hohn/${CSI_TARGET}
