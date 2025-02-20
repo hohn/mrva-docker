@@ -469,9 +469,6 @@ grep 'docker tag' containers/*/*.org containers/*/Makefile
     #* Tag the images for a registry
     ( cd ~/work-gh/mrva/mrva-docker/ && rg 'docker (tag)' )
 
-    docker tag mrva-client-ghmrva:0.2.0 ghcr.io/hohn/mrva-client-ghmrva:0.2.0
-    docker push ghcr.io/hohn/mrva-client-ghmrva:0.2.0
-
     tagpushimg () {
         name=$1
         version=$2
