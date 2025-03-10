@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#+OPTIONS: H:2 num:t \n:nil @:t ::t |:t ^:{} f:t *:t TeX:t LaTeX:t skip:nil p:nil
+#+OPTIONS: H:3 num:t \n:nil @:t ::t |:t ^:{} f:t *:t TeX:t LaTeX:t skip:nil p:nil
 
 * Using the Containers
 ** Running the containers
@@ -195,7 +195,8 @@
 
    Connect to vscode-codeql container at http://localhost:9080/?folder=/home/coder
 
-   1. Set 
+*** Provide settings 
+    The file
      : /home/coder/.local/share/code-server/User/settings.json
      #+BEGIN_SRC sh 
        cat > /home/coder/.local/share/code-server/User/settings.json << EOF
@@ -209,39 +210,42 @@
        EOF
      #+END_SRC
 
-   2. =ql tab > variant analysis repositories > {}=, put this into
-      =databases.json=
-      #+BEGIN_SRC sh 
-        {
-            "version": 1,
-            "databases": {
-                "variantAnalysis": {
-                    "repositoryLists": [
-                        {
-                            "name": "mrva-list",
-                            "repositories": [
-                                "Serial-Studio/Serial-Studio",
-                                "UEFITool/UEFITool",
-                                "aircrack-ng/aircrack-ng",
-                                "bulk-builder/bulk-builder",
-                                "tesseract/tesseract"
-                            ]
-                        }
-                    ],
-                    "owners": [],
-                    "repositories": []
-                }
-            },
-            "selected": {
-                "kind": "variantAnalysisUserDefinedList",
-                "listName": "mirva-list"
-            }
-        }
-      #+END_SRC
+*** Provide list of repositories to analyze
+    =ql tab > variant analysis repositories > {}=, put this into
+    =databases.json=
+    #+BEGIN_SRC sh 
+      {
+          "version": 1,
+          "databases": {
+              "variantAnalysis": {
+                  "repositoryLists": [
+                      {
+                          "name": "mrva-list",
+                          "repositories": [
+                              "Serial-Studio/Serial-Studio",
+                              "UEFITool/UEFITool",
+                              "aircrack-ng/aircrack-ng",
+                              "bulk-builder/bulk-builder",
+                              "tesseract/tesseract"
+                          ]
+                      }
+                  ],
+                  "owners": [],
+                  "repositories": []
+              }
+          },
+          "selected": {
+              "kind": "variantAnalysisUserDefinedList",
+              "listName": "mirva-list"
+          }
+      }
+    #+END_SRC
 
-   3. =ql tab > variant analysis repositories > 'select' mrva-list=
+*** Make the list current
+    =ql tab > variant analysis repositories > 'select' mrva-list=
 
-   4. Select file =qldemo/simple.ql= and put =Fprintf.ql= parallel to it:
+*** Provide a query
+    Select file =qldemo/simple.ql= and put =Fprintf.ql= parallel to it:
       #+BEGIN_SRC sh 
         cat > /home/coder/qldemo/Fprintf.ql <<eof
         /**
@@ -278,7 +282,8 @@
         select fc, "call of fprintf"
       #+END_SRC
 
-   5. Adjust the qlpack.yml to cpp, from python.
+*** Provide the qlpack specification
+    Create qlpack.yml for cpp:
       #+BEGIN_SRC sh 
         cat > /home/coder/qldemo/qlpack.yml <<eof
         library: false
@@ -289,16 +294,8 @@
         eof
       #+END_SRC
 
-      #+BEGIN_SRC yaml
-        library: false
-        name: codeql-dataflow-ii-cpp
-        version: 0.0.1
-        dependencies:
-          codeql/cpp-all: 0.5.3
-      #+END_SRC
-
-      Detailed:
-      1. Delete qlpack lock file
+    Then
+      1. Delete =qlpack.lock= file
       2. In shell,
          #+BEGIN_SRC sh 
            cd ~/qldemo
@@ -307,10 +304,10 @@
       3. In GUI, 'install pack dependencies'
       4. In GUI, 'reload windows'
 
-   6. Submit the analysis job:
+*** Submit the analysis job
       : Fprintf.ql > right click > run variant analysis
 
-   7. XX: bug: <2025-02-19 Wed>
+*** XX: bug: <2025-02-19 Wed>
       #+BEGIN_SRC text
         +lle1Oo44XUE87h82ShEVmzTAe02Csf9HKt7kLw2xPU0mt3mYNtbaFEsO3HQNh3tWNS7B+lFoaLw/9t2t9r1//h4P/z1P77+fP35+vP15xb//D9DrYDfAKi6AA==","repositories":["Serial-Studio/Serial-Studio","UEFITool/UEFITool","aircrack-ng/aircrack-ng","bulk-builder/bulk-builder","tesseract/tesseract"]}
         Fetch request URL: http://server:8080/repositories/0/code-scanning/codeql/variant-analyses
@@ -367,8 +364,7 @@
           This will log the issue instead of crashing.
         #+END_SRC
 
-        
-   8. XX: bug:
+*** XX: bug:
       #+BEGIN_SRC text
         Could not download the results for variant analysis with id: 1. Error: request to
         http://localhost:8080/download/eyJTZXNzaW9uSUQiOjEsIk93bmVyIjoidGVzc2VyYWN0IiwiUmVwbyI6InRlc3NlcmFjdCJ9
@@ -407,7 +403,7 @@
 
       #+END_SRC
 
-   9. XX: ?fixed? via
+*** XX: ?fixed? via
       - SERVER_HOST=server
       - SERVER_PORT=8080
       But have to go through the sequence again:
@@ -490,3 +486,4 @@ grep 'docker tag' containers/*/*.org containers/*/Makefile
     tagpushimg mrva-server-dbsdata 0.2.0
   #+END_SRC
 
+  view container image list on ghcr.io: https://github.com/hohn?tab=packages
