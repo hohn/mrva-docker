@@ -67,6 +67,147 @@
      #+END_SRC
 
 ** Use gh-mrva container to send request via cli
+*** Start container and check gh-mrva tool
+    #+BEGIN_SRC sh 
+       # Start an interactive bash shell inside the running Docker container
+       docker exec -it mrva-docker-client-ghmrva-1 bash
+
+       # Check if the gh-mrva tool is installed and accessible
+       gh-mrva -h
+    #+END_SRC
+
+*** Set up gh-mrva configuration
+    #+BEGIN_SRC sh 
+       # Create configuration directory and generate config file for gh-mrva
+       mkdir -p ~/.config/gh-mrva
+       cat > ~/.config/gh-mrva/config.yml <<eof
+       # Configuration file for the gh-mrva tool
+       # codeql_path: Path to the CodeQL distribution (not used in this setup)
+       # controller: Placeholder for a controller NWO (not relevant in this setup)
+       # list_file: Path to the repository selection JSON file
+
+       codeql_path: not-used/codeql-path
+       controller: not-used/mirva-controller
+       list_file: $HOME/work-gh/mrva/gh-mrva/gh-mrva-selection.json
+       eof
+
+    #+END_SRC
+
+*** Create repository selection list
+    #+BEGIN_SRC sh 
+       # Create a directory and generate the JSON file specifying repositories
+       mkdir -p ~/work-gh/mrva/gh-mrva
+       cat > ~/work-gh/mrva/gh-mrva/gh-mrva-selection.json <<eof
+       {
+           "mirva-list": [
+               "Serial-Studio/Serial-Studio",
+               "UEFITool/UEFITool",
+               "aircrack-ng/aircrack-ng",
+               "bulk-builder/bulk-builder",
+               "tesseract/tesseract"
+           ]
+       }
+       eof
+
+    #+END_SRC
+
+*** Create and submit the first query (FlatBuffersFunc.ql)
+    #+BEGIN_SRC sh 
+       # Generate a sample CodeQL query for functions of interest
+       cat > ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql <<eof
+       /**
+        ,* @name pickfun
+        ,* @description Pick function from FlatBuffers
+        ,* @kind problem
+        ,* @id cpp-flatbuffer-func
+        ,* @problem.severity warning
+        ,*/
+
+       import cpp
+
+       from Function f
+       where
+         f.getName() = "MakeBinaryRegion" or
+         f.getName() = "microprotocols_add"
+       select f, "definition of MakeBinaryRegion"
+       eof
+
+       # Submit the MRVA job with the first query
+       cd ~/work-gh/mrva/gh-mrva/
+       gh-mrva submit --language cpp --session mirva-session-1172 \
+                 --list mirva-list                                \
+                 --query ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
+
+    #+END_SRC
+
+*** Check status and download results for the first session
+    #+BEGIN_SRC sh 
+       # Check the status of the submitted session
+       gh-mrva status --session mirva-session-1172
+
+       # Download SARIF files and databases if there are results.  For the current
+       # query / database combination there are zero result hence no downloads
+       cd ~/work-gh/mrva/gh-mrva/
+       gh-mrva download --session mirva-session-1172   \
+               --download-dbs                          \
+               --output-dir mirva-session-1172
+
+
+    #+END_SRC
+
+*** Next, run a query with results
+    #+BEGIN_SRC sh 
+
+       #**  Set up QLPack for the next query
+       # Create a qlpack.yml file required for the next query
+       cat > ~/work-gh/mrva/gh-mrva/qlpack.yml <<eof
+       library: false
+       name: codeql-dataflow-ii-cpp
+       version: 0.0.1
+       dependencies:
+         codeql/cpp-all: 0.5.3
+       eof
+
+       #**  Create and submit the second query (Fprintf.ql)
+       # Generate a CodeQL query to find calls to fprintf
+       cat > ~/work-gh/mrva/gh-mrva/Fprintf.ql <<eof
+       /**
+        ,* @name findPrintf
+        ,* @description Find calls to plain fprintf
+        ,* @kind problem
+        ,* @id cpp-fprintf-call
+        ,* @problem.severity warning
+        ,*/
+
+       import cpp
+
+       from FunctionCall fc
+       where
+         fc.getTarget().getName() = "fprintf"
+       select fc, "call of fprintf"
+       eof
+
+       # Submit a new MRVA job with the second query
+       cd ~/work-gh/mrva/gh-mrva/
+       gh-mrva submit                                      \
+               --language cpp --session mirva-session-1861 \
+               --list mirva-list                           \
+               --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
+    #+END_SRC
+
+*** Check status and download results for the second session
+    #+BEGIN_SRC sh 
+       # Check the status of the second session
+       gh-mrva status --session mirva-session-1861
+
+       # Download SARIF files and databases for the second query
+       cd ~/work-gh/mrva/gh-mrva/
+       gh-mrva download --session mirva-session-1861   \
+               --download-dbs                          \
+               --output-dir mirva-session-1861
+    #+END_SRC
+
+*** As shell script
      #+BEGIN_SRC sh 
        #*  Start container and check gh-mrva tool
        # Start an interactive bash shell inside the running Docker container
@@ -130,65 +271,8 @@
                  --list mirva-list                                \
                  --query ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
 
-       #*  Check status and download results for the first session
-       # Check the status of the submitted session
-       gh-mrva status --session mirva-session-1172
+    #+END_SRC
 
-       # Download SARIF files and databases if there are results.  For the current
-       # query / database combination there are zero result hence no downloads
-       cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva download --session mirva-session-1172   \
-               --download-dbs                          \
-               --output-dir mirva-session-1172
-
-       #*  Next, run a query with results
-
-       #**  Set up QLPack for the next query
-       # Create a qlpack.yml file required for the next query
-       cat > ~/work-gh/mrva/gh-mrva/qlpack.yml <<eof
-       library: false
-       name: codeql-dataflow-ii-cpp
-       version: 0.0.1
-       dependencies:
-         codeql/cpp-all: 0.5.3
-       eof
-
-       #**  Create and submit the second query (Fprintf.ql)
-       # Generate a CodeQL query to find calls to fprintf
-       cat > ~/work-gh/mrva/gh-mrva/Fprintf.ql <<eof
-       /**
-        ,* @name findPrintf
-        ,* @description Find calls to plain fprintf
-        ,* @kind problem
-        ,* @id cpp-fprintf-call
-        ,* @problem.severity warning
-        ,*/
-
-       import cpp
-
-       from FunctionCall fc
-       where
-         fc.getTarget().getName() = "fprintf"
-       select fc, "call of fprintf"
-       eof
-
-       # Submit a new MRVA job with the second query
-       cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva submit                                      \
-               --language cpp --session mirva-session-1861 \
-               --list mirva-list                           \
-               --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
-
-       #*  Check status and download results for the second session
-       # Check the status of the second session
-       gh-mrva status --session mirva-session-1861
-
-       # Download SARIF files and databases for the second query
-       cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva download --session mirva-session-1861   \
-               --download-dbs                          \
-               --output-dir mirva-session-1861
-     #+END_SRC
 ** Send request via gui, using vs code
    The following sequence works when run from a local vs code with the custom
    codeql plugin.
