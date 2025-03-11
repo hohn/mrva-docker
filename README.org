@@ -571,3 +571,30 @@ grep 'docker tag' containers/*/*.org containers/*/Makefile
   #+END_SRC
 
   view container image list on ghcr.io: https://github.com/hohn?tab=packages
+
+* Project Tools
+
+  This project, mrva-docker, is the highest-level part of the project as it
+  packages all others.
+  So it also houses simple project tools.
+  #+BEGIN_SRC sh 
+    # On macos
+
+    # install uv
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    uv self update
+
+    # set up mrva-env
+    cd ~/work-gh/mrva/mrva-docker
+    uv venv mrva-env
+
+    # activate mrva-env
+    source mrva-env/bin/activate
+
+    # link scripts (lazy 'install')
+    cd  mrva-env/bin/
+    ln -s ../../bin/* .
+
+  #+END_SRC
+
+  

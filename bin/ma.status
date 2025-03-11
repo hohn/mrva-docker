@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+# ma.status - a simple script to run a command in a directory and capture the output
+# as html. 
+
+import io
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import List, Tuple
+
+# Define a type alias for Command
+Command = str
+
+# Configuration
+# Define directory-command pairs
+command = "git -c color.status=always status"
+command = "git -c color.status=always status"
+pairs: List[Tuple[Path, Command]] = [
+    (Path(os.path.expanduser("~/work-gh/mrva/mrvaagent"))     , command),
+    (Path(os.path.expanduser("~/work-gh/mrva/mrvaserver"))    , command),
+    (Path(os.path.expanduser("~/work-gh/mrva/mrvacommander")) , command),
+    (Path(os.path.expanduser("~/work-gh/mrva/mrvahepc"))      , command),
+    (Path(os.path.expanduser("~/work-gh/mrva/mrva-docker"))   , command),
+    (Path(os.path.expanduser("~/work-gh/mrva/gh-mrva"))       , command),
+    (Path(os.path.expanduser("~/work-gh/mrva/vscode-codeql")) , command),
+]
+
+# Check environment
+if shutil.which("aha") is None:
+    print("Error: 'aha' command is missing. Please install it before proceeding.", file=sys.stderr)
+    sys.exit(1)
+
+
+def write_html():
+    # Start the HTML output
+    print("<html>")
+    print("<head>")
+    print("<style>")
+    print("body { font-family: 'Avenir', sans-serif; }")
+    print("</style>")
+    print("</head>")
+    print("<body>")
+    print("<table>")
+    print("<tr>")
+
+    # Iterate over pairs
+    for i, (dir, cmd) in enumerate(pairs):
+        # Check if directory exists
+        if dir.is_dir():
+            os.chdir(dir)
+
+            # Execute command and capture output
+            result: subprocess.CompletedProcess = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            result_html: str = subprocess.run("aha -n", input=result.stdout, shell=True, capture_output=True, text=True).stdout
+
+            # Write html output
+            print("  <td valign=\"top\" align=\"left\">")
+            print("    <table border=\"1\">")
+            print(f"      <tr><td><b>Directory:</b></td><td>{dir}</td></tr>")
+            print(f"      <tr><td><b>Command:</b></td><td>{cmd}</td></tr>")
+            print(f"      <tr><td><b>Result:</b></td><td><pre style=\"font-size: 80%; font-family:  'IBM Plex Mono', 'CMU Typewriter Text', monospace;\">{result_html}</pre></td></tr>")
+            print("    </table>")
+            print("  </td>")
+        else:
+            print("  <td valign=\"top\" align=\"left\">")
+            print("    <table border=\"1\">")
+            print(f"      <tr><td><b>Directory:</b></td><td>{dir}</td></tr>")
+            print(f"      <tr><td><b>Command:</b></td><td>{cmd}</td></tr>")
+            print(f"      <tr><td><b>Result:</b></td><td><pre>Skipping {dir}: Directory not found</pre></td></tr>")
+            print("    </table>")
+            print("  </td>")
+
+        # Enter a new row after every two cells; insert spacer
+        if (i + 1) % 2 == 0:
+            print("</tr> <tr style=\"height: 2ex;\"> <td></td> </tr> <tr>")
+
+    # Close the HTML table and body
+    print("</tr></table>")
+    print("</body>")
+    print("</html>")
+
+import contextlib
+
+with open("foo.html", "w") as of:
+    with contextlib.redirect_stdout(of):
+        write_html()  # This will write to foo.html instead of stdout
+
+# Open the file in the default web browser or viewer
+subprocess.run(["open", "foo.html"], check=True)  # Use "xdg-open" on Linux    
