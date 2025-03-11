@@ -1,6 +1,7 @@
 * MRVA VS Code server container
   On the host:
 
+  - mixed install, pre and post-container build
     #+BEGIN_SRC sh 
       # Build the container via 
       cd ~/work-gh/mrva/mrva-docker/containers/vscode/
@@ -10,6 +11,27 @@
       cd ~/work-gh/mrva/mrva-docker/containers/vscode/
       docker run -v ~/work-gh/mrva/vscode-codeql:/work-gh/mrva/vscode-codeql \
              -d -p 9080:9080 code-server-initialized:0.1.24 
+    #+END_SRC
+
+  - pre-container build
+    #+BEGIN_SRC sh 
+      # Collect artifacts
+      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
+      cp ~/work-gh/mrva/vscode-codeql/dist/vscode-codeql-* artifacts/
+
+      # Build the container via 
+      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
+      docker build -t code-server-initialized:0.3.3 .
+      # # For debugging and significant Dockerfile changes, build from scratch:
+      # docker build --no-cache -t code-server-initialized:0.3.3 .
+
+      # Run the container in standalone mode via 
+      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
+      docker run -v ~/work-gh/mrva/vscode-codeql:/work-gh/mrva/vscode-codeql \
+             -d -p 9080:9080 code-server-initialized:0.3.3
+
+      # Connect to it, password is mrva
+      open http://localhost:9080/?folder=/home/coder
     #+END_SRC
 
   - Connect to it at http://localhost:9080/?folder=/home/coder, password is =mrva=.
