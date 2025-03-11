@@ -1,10 +1,11 @@
 FROM codercom/code-server:4.92.2-debian
 
 # ======================
+# Stage 1: Install System Dependencies
+# 
 # Pre-install a custom JDK for this platform and redirect CodeQL to it
 
 USER root
-
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install packages
@@ -19,13 +20,18 @@ RUN apt-get update && apt-get install --no-install-recommends --assume-yes \
     python3-dev                                     \
     unzip
 
+# ======================
+# Stage 2: Install CodeQL
+
 # Build argument for CodeQL version, defaulting to the latest release
 ARG CODEQL_VERSION=latest
 
 # If the version is 'latest', get the latest release version from GitHub, unzip
 # the bundle into /opt, and delete the archive
 RUN if [ "$CODEQL_VERSION" = "latest" ]; then \
-    CODEQL_VERSION=$(curl -s https://api.github.com/repos/github/codeql-cli-binaries/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/'); \
+    CODEQL_VERSION=$(curl -s \
+        https://api.github.com/repos/github/codeql-cli-binaries/releases/latest | \
+        grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/'); \
     fi && \
     echo "Using CodeQL version $CODEQL_VERSION" && \
     curl -L "https://github.com/github/codeql-cli-binaries/releases/download/$CODEQL_VERSION/codeql-linux64.zip" -o /tmp/codeql.zip && \
@@ -35,11 +41,13 @@ RUN if [ "$CODEQL_VERSION" = "latest" ]; then \
     chown -R coder:coder /opt/codeql
 
 # ======================
+# Stage 3: Set up coder user environment
 USER root
 RUN mkdir -p /home/coder/.local/ && \
     chown -R coder:coder /home/coder/.local
 
-# Install code-server
+# ======================
+# Stage 4: Install VS Code Extensions
 USER coder
 
 # Set environment variables
@@ -54,11 +62,17 @@ RUN code-server --install-extension ms-python.python \
     && code-server --install-extension "$(ls -t /home/coder/vscode-codeql-1.13* | head -n 1)" \
     && rm -f /home/coder/vscode-codeql-1.13*
 
+# ======================
+# Stage 5: Set CodeQL Java Home
+USER coder
+# Point CodeQL to the java binary for this platform
+ENV CODEQL_JAVA_HOME=/usr
+
 # Expose the port that Code Server runs on
 EXPOSE 9080
 
-# Point CodeQL to the java binary for this platform
-ENV CODEQL_JAVA_HOME=/usr
+# ======================
+# Stage 6: Configure Code Server
 
 # Add
 #   codeQl.cli.executablePath
