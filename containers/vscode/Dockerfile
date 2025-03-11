@@ -31,19 +31,28 @@ RUN if [ "$CODEQL_VERSION" = "latest" ]; then \
     curl -L "https://github.com/github/codeql-cli-binaries/releases/download/$CODEQL_VERSION/codeql-linux64.zip" -o /tmp/codeql.zip && \
     unzip /tmp/codeql.zip -d /opt && \
     rm /tmp/codeql.zip && \
-    chmod -R +x /opt/codeql
+    chmod -R +x /opt/codeql && \
+    chown -R coder:coder /opt/codeql
 
 # ======================
+USER root
+RUN mkdir -p /home/coder/.local/ && \
+    chown -R coder:coder /home/coder/.local
+
 # Install code-server
 USER coder
 
 # Set environment variables
 ENV PASSWORD mrva
 
-# Install VS Code extensions as user root -- globally
+# Copy all potential vscode-codeql builds
+COPY ./artifacts/vscode-codeql-1.13.2-* /home/coder/
+
+# Install VS Code extensions globally
 RUN code-server --install-extension ms-python.python \
     && code-server --install-extension esbenp.prettier-vscode \
-    && code-server --install-extension GitHub.vscode-codeql
+    && code-server --install-extension "$(ls -t /home/coder/vscode-codeql-1.13* | head -n 1)" \
+    && rm -f /home/coder/vscode-codeql-1.13*
 
 # Expose the port that Code Server runs on
 EXPOSE 9080
@@ -56,9 +65,10 @@ ENV CODEQL_JAVA_HOME=/usr
 # to user settings.
 # This is in addition to the environment variable CODEQL_JAVA_HOME which has no
 # effect on the plugin
-USER root
-COPY ./settings.json  /home/coder/.local/share/code-server/User/
-RUN chown -R coder:coder /home/coder/.local/share/code-server/
+USER coder
+COPY ./settings.json  /home/coder/
+RUN mkdir -p /home/coder/.local/share/code-server/User/ && \
+    cp /home/coder/settings.json /home/coder/.local/share/code-server/User/
 
 # Start Code Server
 ENTRYPOINT ["dumb-init", "code-server", "--bind-addr", "0.0.0.0:9080", "."]
