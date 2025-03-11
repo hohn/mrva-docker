@@ -83,9 +83,9 @@ def write_html():
 
 import contextlib
 
-with open("foo.html", "w") as of:
+with open("/tmp/ma.status.html", "w") as of:
     with contextlib.redirect_stdout(of):
         write_html()  # This will write to foo.html instead of stdout
 
 # Open the file in the default web browser or viewer
-subprocess.run(["open", "foo.html"], check=True)  # Use "xdg-open" on Linux    
+subprocess.run(["open", "/tmp/ma.status.html"], check=True)  # Use "xdg-open" on Linux    
