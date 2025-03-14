@@ -1,0 +1,47 @@
+* node build container
+
+** Build the container
+  #+BEGIN_SRC sh 
+    cd ~/work-gh/mrva/mrva-docker/containers/node-build
+    docker build -t vscode-extension-builder .
+  #+END_SRC
+
+** Use the container to build a project
+  For a project with structure
+  #+BEGIN_SRC text
+    my-project/
+      vscode-codeql/
+        extensions/
+          ql-vscode/  <-- (Contains package.json and source code)
+  #+END_SRC
+
+  run 
+  #+BEGIN_SRC sh 
+    cd ~/work-gh/mrva/vscode-codeql/
+
+    # start container
+    docker run --rm -ti -v "$(pwd):/workspace" vscode-extension-builder /bin/bash
+
+    # Run the following in the container 
+    # XX: Inside container for now, move to Dockerfile
+
+    # Build the extension
+    cd /workspace/extensions/ql-vscode
+
+    # set up environment
+    source /usr/local/nvm/nvm.sh
+    nvm install
+    npm install -g @vscode/vsce
+    chmod +x /workspace/extensions/ql-vscode/node_modules/.bin/vsce
+    npm install husky
+
+    # build vsix
+    npm install
+    npm run build
+
+    # extension is in /workspace/dist/vscode-codeql-1.13.2-dev.2025.3.12.17.37.12.vsix
+
+    # Back on the host
+    ls ~/work-gh/mrva/vscode-codeql/dist/vscode-codeql*.vsix
+  #+END_SRC
+

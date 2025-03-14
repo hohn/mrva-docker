@@ -42,10 +42,10 @@
 
        #* Copy the new binary
        cd ~/work-gh/mrva/mrvaserver
-       docker cp mrvaserver server:/usr/local/bin/mrvaserver
+       docker cp mrvaserver mrva-server:/usr/local/bin/mrvaserver
 
        #* Restart the binary
-       docker exec server pkill mrvaserver
+       docker exec mrva-server pkill mrvaserver
 
      #+END_SRC
    - agent
@@ -59,10 +59,10 @@
 
        #* Copy the new binary
        cd ~/work-gh/mrva/mrvaagent
-       docker cp mrvaagent agent:/usr/local/bin/mrvaagent
+       docker cp mrvaagent mrva-agent:/usr/local/bin/mrvaagent
 
        #* Restart the binary
-       docker exec agent pkill mrvaagent
+       docker exec mrva-agent pkill mrvaagent
 
      #+END_SRC
 
@@ -391,6 +391,15 @@
 *** Submit the analysis job
       : Fprintf.ql > right click > run variant analysis
 
+*** XX: post-interface reload <2025-03-12 Wed>
+    #+BEGIN_SRC text
+      No orphaned databases found.
+      Reading query history
+      Reading cached query history from '/home/coder/.local/share/code-server/User/workspaceStorage/579340b4/GitHub.vscode-codeql/workspace-query-history.json'.
+      Successfully finished extension initialization.
+      Variant analysis view loaded
+    #+END_SRC
+
 *** XX: bug: <2025-02-19 Wed>
       #+BEGIN_SRC text
         +lle1Oo44XUE87h82ShEVmzTAe02Csf9HKt7kLw2xPU0mt3mYNtbaFEsO3HQNh3tWNS7B+lFoaLw/9t2t9r1//h4P/z1P77+fP35+vP15xb//D9DrYDfAKi6AA==","repositories":["Serial-Studio/Serial-Studio","UEFITool/UEFITool","aircrack-ng/aircrack-ng","bulk-builder/bulk-builder","tesseract/tesseract"]}
@@ -552,7 +561,7 @@ grep 'docker tag' containers/*/*.org containers/*/Makefile
     tagpushimg () {
         name=$1
         version=$2
-    
+
         docker tag $name:$version ghcr.io/hohn/$name:$version
         docker push ghcr.io/hohn/$name:$version
     }

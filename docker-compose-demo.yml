@@ -7,13 +7,15 @@ services:
         #     - /qldb  # Directory inside the container that contains the data
         volumes:
             - dbsdata:/data
-        container_name: dbssvc
+        container_name: mrva-dbssvc
+        hostname: dbssvc
         networks:
             - backend
 
     dbstore:
         image: minio/minio:RELEASE.2024-06-11T03-13-30Z
-        container_name: dbstore
+        container_name: mrva-dbstore
+        hostname: dbstore
         ports:
             - "9000:9000"
             - "9001:9001"
@@ -32,6 +34,7 @@ services:
      
     client-ghmrva:
         # ./containers/ghmrva/Dockerfile
+        container_name: mrva-ghmrva
         image: ghcr.io/hohn/client-ghmrva-container:0.1.24 
         network_mode: "service:server" # Share the 'server' network namespace
         environment:
@@ -39,7 +42,8 @@ services:
             
     code-server:
         # ./containers/vscode/Dockerfile
-        image: ghcr.io/hohn/code-server-initialized:0.1.24
+        container_name: mrva-code-server
+        image: code-server-initialized:0.3.3
         ports:
             - "9080:9080"
         # XX: Include codeql binary in code-server (if it's not there already)
@@ -51,7 +55,8 @@ services:
     hepc:
         # ./containers/hepc/Dockerfile
         image: ghcr.io/hohn/mrva-hepc-container:0.1.24
-        container_name: hepc
+        container_name: mrva-hepc
+        hostname: hepc
         command: >-
             mc-hepc-serve --codeql-db-dir db-collection.tmp
             --host "0.0.0.0"
@@ -64,7 +69,7 @@ services:
     rabbitmq:
         image: rabbitmq:3-management
         hostname: rabbitmq
-        container_name: rabbitmq
+        container_name: mrva-rabbitmq
         volumes:
             - ./init/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
             - ./init/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
@@ -83,7 +88,8 @@ services:
         # ./containers/server/Dockerfile
         image: ghcr.io/hohn/mrva-server:0.1.24
         command: [ '--mode=container', '--loglevel=debug' ]
-        container_name: server
+        container_name: mrva-server
+        hostname: server
         stop_grace_period: 1s
         depends_on:
             - rabbitmq
@@ -102,7 +108,8 @@ services:
      
     artifactstore:
         image: minio/minio:RELEASE.2024-06-11T03-13-30Z
-        container_name: artifactstore
+        container_name: mrva-artifactstore
+        hostname: artifactstore
         ports:
             - "19000:9000" # host:container
             - "19001:9001"
@@ -121,7 +128,8 @@ services:
         # ./containers/agent/Dockerfile
         image: ghcr.io/hohn/mrva-agent:0.1.24
         command: [ '--loglevel=debug' ]
-        container_name: agent
+        container_name: mrva-agent
+        hostname: agent
         depends_on:
             - rabbitmq
             - dbstore
@@ -134,7 +142,7 @@ services:
             - MRVA_HEPC_CACHE_DURATION=60
         networks:
             - backend
-   
+
 networks:
     backend:
         driver: bridge

@@ -1,5 +1,5 @@
 * MRVA VS Code server container
-  On the host:
+** On the host
 
   - mixed install, pre and post-container build
     #+BEGIN_SRC sh 
@@ -12,6 +12,26 @@
       docker run -v ~/work-gh/mrva/vscode-codeql:/work-gh/mrva/vscode-codeql \
              -d -p 9080:9080 code-server-initialized:0.1.24 
     #+END_SRC
+
+  - build vscode-codeql plugin
+    - [[file:~/work-gh/mrva/mrva-docker/containers/node-build/README.org::*node build container][node build container]] produces
+      : ~/work-gh/mrva/vscode-codeql/dist/vscode-codeql*.vsix
+    - For patching the vscode-codeql extension, edit source there and rebuild; for
+      one-time use, install extension in running code-server container;
+      copy it via
+      #+BEGIN_SRC sh 
+        VSCID=$(docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}" |grep code-server |cut -f1 -d " ")
+
+        cat ~/work-gh/mrva/vscode-codeql/dist/vscode-codeql-1.13.2-dev.2025.3.12.17.37.12.vsix |\
+            docker exec -i $VSCID sh -c 'cat > /home/coder/vscode-codeql-1.13.2-dev.2025.3.12.17.37.12.vsix'
+
+      #+END_SRC
+      install via GUI; the file listing has a right-click entry.
+      Could also use
+      #+BEGIN_SRC sh 
+      /bin/code-server --force --install-extension vscode-codeql-*.vsix
+      #+END_SRC
+
 
   - pre-container build
     #+BEGIN_SRC sh 
@@ -36,7 +56,132 @@
 
   - Connect to it at http://localhost:9080/?folder=/home/coder, password is =mrva=.
 
-  Inside the container:
+** Inside the container
+
+  - [ ] To see changes in container
+    #+BEGIN_SRC sh 
+      docker diff $(docker ps |grep code-server |cut -f1 -d " ")
+
+      # 
+      # determine S_relevant = S_install - S_start, where:
+      # 
+      # S_start: Changes after the container is first run and the VS Code UI is opened.
+      # S_install: Changes after additional steps (like installing software).
+      # S_relevant: The differences that come specifically from the installation steps.
+
+      # Capture S_start before installation
+      docker diff $(docker ps | grep code-server | cut -f1 -d " ") > S_start.txt
+
+      # Perform the installation or modifications
+
+      # Capture S_install after installation
+      docker diff $(docker ps | grep code-server | cut -f1 -d " ") > S_install.txt
+
+      # Compute S_relevant using comm
+      comm -13 <(sort S_start.txt) <(sort S_install.txt) > S_relevant.txt
+
+      less S_relevant.txt
+
+      # As first step, filter wanted files
+      cat S_relevant.txt | \
+          grep -ve /home/coder/mrva-qldemo \
+               -ve /home/coder/.codeql/packages \
+               -ve /home/coder/.local/share/code-server/User/globalStorage/github.vscode-codeql |\
+          less
+
+      # list wanted files
+      C_wanted=$(cat S_relevant.txt | \
+                     grep -e /home/coder/mrva-qldemo \
+                          -e /home/coder/.codeql/packages \
+                          -e /home/coder/.local/share/code-server/User/globalStorage/github.vscode-codeql|\
+                     grep -ve globalStorage/github.vscode-codeql/variant-analyses |\
+                     cut -f2 -d " ")
+      echo "$C_wanted" |less
+
+      # export from container to host
+      VSCID=$(docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}" |grep code-server |cut -f1 -d " ")
+      echo "$C_wanted" | docker exec -i $VSCID tar cf - -T - > mrva-docker-installs.tar
+
+      0:$ tar tvf mrva-docker-installs.tar |sort -rn +4 |head
+      -rwxr-xr-x  0 coder  coder 58954792 Mar 11 20:37 home/coder/.local/share/code-server/User/globalStorage/github.vscode-codeql/distribution11/codeql/cpp/tools/linux64/extractor
+      -rwxr-xr-x  0 coder  coder 58587032 Mar 11 20:37 home/coder/.local/share/code-server/User/globalStorage/github.vscode-codeql/distribution11/codeql/cpp/tools/linux64/cpp-telemetry
+      -rwxr-xr-x  0 coder  coder 57264264 Mar 11 20:37 home/coder/.local/share/code-server/User/globalStorage/github.vscode-codeql/distribution11/codeql/cpp/tools/linux64/extractor-static
+      -rwxr-xr-x  0 coder  coder 57250624 Mar 11 20:37 home/coder/.local/share/code-server/User/globalStorage/github.vscode-codeql/distribution11/codeql/cpp/tools/linux64/trap-cache-reader
+
+      # snapshot again
+      VSCID=$(docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}" |grep code-server |cut -f1 -d " ")
+      docker commit $VSCID mrva-client-vscode:0.3.4
+    #+END_SRC
+    - XX:
+      - plain
+      - add shar
+      - open Fprintf, installs codeql cli
+      - install pack dependencies
+      - S_crth.txt
+      - paste variant analysis repo file
+        + get vscode-selection from hepc
+
+          [[file:~/work-gh/mrva/mrvahepc/db-collection.tmp/metadata.json::{"git_branch": "HEAD", "git_commit_id": "2b41915dac8966e95f9e63638d30769b0d69ad68", "git_repo": "aircrack-ng", "ingestion_datetime_utc": "2024-06-07 16:57:47.683012+00:00", "result_url": "http://hepc/db/db-collection.tmp/aircrack-ng-aircrack-ng-ctsj-41ebbe.zip", "tool_id": "9f2f9642-febb-4435-9204-fb50bbd43de4", "tool_name": "codeql-cpp", "tool_version": "2.17.4", "projname": "aircrack-ng/aircrack-ng"}]]
+
+          #+BEGIN_SRC sh 
+            jq '.projname' < ~/work-gh/mrva/mrvahepc/db-collection.tmp/metadata.json |sort -u
+          #+END_SRC
+
+          Set up 'variant analysis repositories', continuing from the
+          =scratch/vscode-selection.json= file formed via jq:
+        + Select '{}' and open db selection file
+        + paste
+          #+begin_src javascript
+            {
+                "version": 1,
+                "databases": {
+                    "variantAnalysis": {
+                        "repositoryLists": [
+                            {
+                                "name": "mirva-list",
+                                "repositories": [
+                                    "Serial-Studio/Serial-Studio",
+                                    "UEFITool/UEFITool",
+                                    "aircrack-ng/aircrack-ng",
+                                    "bulk-builder/bulk-builder",
+                                    "tesseract/tesseract"
+                                ]
+                            }
+                        ],
+                        "owners": [],
+                        "repositories": []
+                    }
+                },
+                "selected": {
+                    "kind": "variantAnalysisUserDefinedList",
+                    "listName": "mirva-list"
+                }
+            }
+          #+end_src
+      - run variant analysis to see if more downloads happen
+        + open =Fprintf.ql=
+        + right click =>= 'run variant analysis'
+        + XX:
+          #+BEGIN_SRC text
+            Unhandled error: Error saving query history to
+            /home/coder/.local/share/code-server/User/workspaceStorage/579340b4/GitHub.vscode-codeql/workspace-query-history.json:
+            Internal error: exhaustivity checking failure Error: Error saving query history to
+            /home/coder/.local/share/code-server/User/workspaceStorage/579340b4/GitHub.vscode-codeql/workspace-query-history.json:
+            Internal error: exhaustivity checking failure 
+          #+END_SRC
+        + all actual runs successful
+      - snapshot container [[file:~/work-gh/mrva/mrva-docker/README.org::*Update Container Images][Update Container Images]]
+        #+BEGIN_SRC sh 
+          #* Get the container IDs
+
+          docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+          # 0:$ docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+
+          VSCID=$(docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}" |grep code-server |cut -f1 -d " ")
+          docker commit $VSCID mrva-client-vscode:0.3.3
+        #+END_SRC
+
+
 
   - [ ] Setup inside the container
     XX: Add one for C++
@@ -74,7 +219,7 @@
   - [ ] Set the database as default and run the query =simple.ql=
 
   - [ ] Add the customized VS Code plugin
-    On the host
+    On the host, build the vscode-codeql plugin
     #+BEGIN_SRC sh 
       cd ~/work-gh/mrva/vscode-codeql
       git checkout mrva-standalone
