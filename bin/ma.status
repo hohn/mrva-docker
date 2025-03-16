@@ -87,5 +87,16 @@ with open("/tmp/ma.status.html", "w") as of:
     with contextlib.redirect_stdout(of):
         write_html()  # This will write to foo.html instead of stdout
 
-# Open the file in the default web browser or viewer
-subprocess.run(["open", "/tmp/ma.status.html"], check=True)  # Use "xdg-open" on Linux    
+import subprocess
+import sys
+
+file_path = "/tmp/ma.status.html"
+
+
+# Open the file in the default web browser or viewer for the current platform
+if sys.platform == "darwin":  # macOS
+    subprocess.run(["open", file_path], check=True)
+elif sys.platform == "win32":  # Windows
+    subprocess.run(["start", file_path], shell=True, check=True)
+else:  # Linux and other Unix-like systems
+    subprocess.run(["xdg-open", file_path], check=True)
