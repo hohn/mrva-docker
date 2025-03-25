@@ -481,15 +481,15 @@ grep 'docker tag' containers/*/*.org containers/*/Makefile
     curl -LsSf https://astral.sh/uv/install.sh | sh
     uv self update
 
-    # set up mrva-env
+    # set up mrva-env on mac
     cd ~/work-gh/mrva/mrva-docker
-    uv venv mrva-env
+    uv venv mrva-env-mac
 
     # activate mrva-env
-    source mrva-env/bin/activate
+    source mrva-env-mac/bin/activate
 
     # link scripts (lazy 'install')
-    cd  mrva-env/bin/
+    cd  mrva-env-mac/bin/
     ln -s ../../bin/* .
 
   #+END_SRC

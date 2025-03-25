@@ -3,8 +3,6 @@ services:
         # ./containers/dbsdata/Dockerfile
         image: ghcr.io/hohn/dbsdata-container:0.1.24
         command: tail -f /dev/null # Keep the container running            
-        # volumes:
-        #     - /qldb  # Directory inside the container that contains the data
         volumes:
             - dbsdata:/data
         container_name: mrva-dbssvc
@@ -12,26 +10,30 @@ services:
         networks:
             - backend
 
-    dbstore:
+    mrvastore:
         image: minio/minio:RELEASE.2024-06-11T03-13-30Z
-        container_name: mrva-dbstore
-        hostname: dbstore
+        container_name: mrvastore
+        hostname: mrvastore
         ports:
             - "9000:9000"
             - "9001:9001"
         env_file:
             - path: .env.container
               required: true
-        command: server /data/mrvacommander/dbstore-data --console-address ":9001"
+        command: server /data/mrvacommander/mrvastore-data --console-address ":9001"
         depends_on:
             - dbssvc            
-        # volumes_from:
-        #     - dbsdata  # Use the volumes from dbsdata container
         volumes:
-            - dbsdata:/data/mrvacommander/dbstore-data
+            - dbsdata:/data/mrvacommander/mrvastore-data
         networks:
-            - backend
-     
+            backend:
+                aliases:
+                    - minio.store
+                    - mrvabucket.minio.store
+                    - packs.minio.store
+                    - qldb.minio.store
+                    - results.minio.store
+
     client-ghmrva:
         # ./containers/ghmrva/Dockerfile
         container_name: mrva-ghmrva
@@ -93,8 +95,7 @@ services:
         stop_grace_period: 1s
         depends_on:
             - rabbitmq
-            - dbstore
-            - artifactstore
+            - mrvastore
         env_file:
             - path: ./.env.container
               required: true
@@ -106,24 +107,6 @@ services:
         networks:
             - backend
      
-    artifactstore:
-        image: minio/minio:RELEASE.2024-06-11T03-13-30Z
-        container_name: mrva-artifactstore
-        hostname: artifactstore
-        ports:
-            - "19000:9000" # host:container
-            - "19001:9001"
-        env_file:
-            - path: ./.env.container
-              required: true
-        command: server /data --console-address ":9001"
-        volumes:
-            # The artifactstore is only populated at runtime so there is no need
-            # for Docker storage; a directory is fine.
-            - ./qpstore-data:/data
-        networks:
-            - backend
-     
     agent:
         # ./containers/agent/Dockerfile
         image: ghcr.io/hohn/mrva-agent:0.1.24
@@ -132,8 +115,7 @@ services:
         hostname: agent
         depends_on:
             - rabbitmq
-            - dbstore
-            - artifactstore
+            - mrvastore
         env_file:
             - path: ./.env.container
               required: true
