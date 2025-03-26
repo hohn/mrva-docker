@@ -1,5 +1,7 @@
 * server image setup
   - build container
+    XX: use
+    : make all
     #+BEGIN_SRC sh 
       # Build the container via
       cd ~/work-gh/mrva/mrva-docker/containers/server/
