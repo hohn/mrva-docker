@@ -69,11 +69,11 @@
 ** Use gh-mrva container to send request via cli
 *** Start container and check gh-mrva tool
     #+BEGIN_SRC sh 
-       # Start an interactive bash shell inside the running Docker container
-       docker exec -it mrva-docker-client-ghmrva-1 bash
+      # Start an interactive bash shell inside the running Docker container
+      docker exec -it mrva-ghmrva bash
 
-       # Check if the gh-mrva tool is installed and accessible
-       gh-mrva -h
+      # Check if the gh-mrva tool is installed and accessible
+      gh-mrva -h
     #+END_SRC
 
 *** Set up gh-mrva configuration
@@ -495,3 +495,35 @@ grep 'docker tag' containers/*/*.org containers/*/Makefile
   #+END_SRC
 
   
+** Access minio
+   - command line
+     #+BEGIN_SRC sh 
+       # 
+       brew install minio/stable/mc  # macOS
+       # or
+       curl -O https://dl.min.io/client/mc/release/linux-amd64/mc && chmod +x mc && sudo mv mc /usr/local/bin/
+
+       # Configuration
+       MINIO_ALIAS="qldbminio"
+       MINIO_URL="http://localhost:9000"
+       MINIO_ROOT_USER="user"
+       MINIO_ROOT_PASSWORD="mmusty8432"
+       QL_DB_BUCKET_NAME="qldb"
+
+       # Configure MinIO client
+       mc alias set $MINIO_ALIAS $MINIO_URL $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
+
+
+       # List everything uploaded under session 5
+       mc ls qldbminio/mrvabucket | grep '^5-'
+
+       # Drill into each expected result
+       mc ls local/mrvabucket/5-{Serial-Studio Serial-Studio}
+       mc ls local/mrvabucket/5-{UEFITool UEFITool}
+       mc ls local/mrvabucket/5-{aircrack-ng aircrack-ng}
+       mc ls local/mrvabucket/5-{bulk-builder bulk-builder}
+       mc ls local/mrvabucket/5-{tesseract tesseract}
+
+     #+END_SRC
+   - web console
+     http://localhost:9001/browser
