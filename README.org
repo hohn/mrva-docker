@@ -12,6 +12,15 @@
 #+HTML_HEAD:   font-size: 0.80em;
 #+HTML_HEAD:   background-color: #f0f0f0;
 #+HTML_HEAD: }
+#+HTML_HEAD: thead tr {
+#+HTML_HEAD:   background-color: #f2f2f2;
+#+HTML_HEAD:   font-weight: bold;
+#+HTML_HEAD:   font-size: 1.1em;
+#+HTML_HEAD:   border-bottom: 2px solid #000;
+#+HTML_HEAD: }
+#+HTML_HEAD: table th, table td,  {
+#+HTML_HEAD:   text-align: left !important;
+#+HTML_HEAD: }
 #+HTML_HEAD: </style>
 
 * lima vm
@@ -41,6 +50,7 @@
    Using a 2x3 terminal layout in iterm, we have
 
    | Window | Directory     |
+   |--------+---------------|
    | UL     | mrvaagent     |
    | UM     | mrvacommander |
    | UR     | mrvahepc      |
@@ -72,21 +82,32 @@
    This aligns precisely with what a Docker image would have. The only differences
    might be:
 
-   | Path        | Docker                       | chroot via debootstrap      |
-   | /root       | present but unused           | optional, often empty       |
-   | /home       | sometimes empty in both      | create it if needed |
-   | /proc, /sys | managed by container runtime | mount manually if needed    |
+   | Path        | Docker                       | chroot via debootstrap   |
+   |-------------+------------------------------+--------------------------|
+   | /root       | present but unused           | optional, often empty    |
+   | /home       | sometimes empty in both      | create it if needed      |
+   | /proc, /sys | managed by container runtime | mount manually if needed |
 
-   Compare to Docker:
+** Compare to Docker
+    | Feature                    | VM + chroot setup   | Docker               |
+    |----------------------------+---------------------+----------------------|
+    | Rebuild control            | Full, script-driven | Layer cache voodoo   |
+    | File system transparency   | Total               | Hidden layers        |
+    | Tool version management    | Shared or isolated  | Always isolated      |
+    | Dev→debug roundtrip        | Instant             | Context build/upload |
+    | Disk efficiency            | Optional            | Layered, rigid       |
+    | Mental model               | File tree + script  | "Magic image"        |
+    | Debug container during run | Simple chroot       | Unnatural UX         |
 
-    | Feature                    | VM + chroot setup      | Docker               |
-    | Rebuild control            | Full, script-driven    | Layer cache voodoo   |
-    | File system transparency   | Total                  | Hidden layers        |
-    | Tool version management    | Shared or isolated     | Always isolated      |
-    | Dev→debug roundtrip        | Instant                | Context build/upload |
-    | Disk efficiency            | Optional               | Layered, rigid       |
-    | Mental model               | File tree + script     | "Magic image"        |
-    | Debug container during run | Simple chroot          | Unnatural UX         |
+
+** Rebuild Cadence
+    | Stage            | Scope         | Frequency          | Cost     | Notes                        |
+    |------------------+---------------+--------------------+----------+------------------------------|
+    | VM base image    | Full VM       | Rare (~1 per loop) | Medium   | Clean slate; fast via Lima   |
+    | VM tweaks        | Apt/tools     | 1–2 per loop       | Low      | Fully scripted               |
+    | Chroot setup     | Per component | 1 per loop         | Fast     | Includes system + tool setup |
+    | Component dev    | Go binary     | 10×+ per chroot    | Instant  | Local builds, bound mount ok |
+    | Full system test | All chroots   | After major change | Med–High | Manual or scripted           |
 
 ** lima machine creation
    #+BEGIN_SRC sh 
