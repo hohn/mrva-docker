@@ -1,19 +1,15 @@
 #!/bin/bash
 # === machine setup ===
 sudo apt update
-
 sudo apt install -y debootstrap unzip golang git
 
 # === Config ===
 CHROOT_ROOT=/srv/mrva/agent-root
-
 # # linux host
 # GO_SRC_DIR=/home/hohn/work-gh/mrva/mrvaagent
-
 # mac host
 GO_SRC_DIR=/Users/hohn/work-gh/mrva/mrvaagent
 CODEQL_VERSION=latest
-
 
 # === Bootstrap base system ===
 echo "[1/6] Bootstrapping Ubuntu into $CHROOT_ROOT"
@@ -58,17 +54,17 @@ sudo rm -rf /usr/local/go
 sudo tar -xzf go1.22.0.linux-arm64.tar.gz
 sudo ln -s /usr/local/go/bin/go /usr/local/bin/go
 sudo apt remove -y golang
-# ensure correct version is first:
-export PATH=/usr/local/go/bin:$PATH
 
 # === Build Go binary ===
+# ensure correct version is first:
+export PATH=/usr/local/go/bin:$PATH
 echo "[5/6] Building mrvaagent Go binary"
 cd "$GO_SRC_DIR"
 export GO111MODULE=on CGO_ENABLED=0 
 go build -o mrvaagent-binary
-
 echo "  -> Installing binary to chroot"
 sudo cp mrvaagent-binary "$CHROOT_ROOT/usr/local/bin/mrvaagent"
+ls -la $CHROOT_ROOT/usr/local/bin/mrvaagent
 
 # === Install minimal entrypoint ===
 echo "[6/6] Installing entrypoint script"
