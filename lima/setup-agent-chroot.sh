@@ -65,15 +65,3 @@ go build -o mrvaagent-binary
 echo "  -> Installing binary to chroot"
 sudo cp mrvaagent-binary "$CHROOT_ROOT/usr/local/bin/mrvaagent"
 ls -la $CHROOT_ROOT/usr/local/bin/mrvaagent
-
-# === Install minimal entrypoint ===
-echo "[6/6] Installing entrypoint script"
-sudo tee "$CHROOT_ROOT/usr/local/bin/entrypoint.sh" > /dev/null <<'EOF'
-#!/bin/bash
-set -e
-echo "Starting agent..."
-exec /usr/local/bin/mrvaagent
-EOF
-sudo chmod +x "$CHROOT_ROOT/usr/local/bin/entrypoint.sh"
-
-echo "✅ Agent chroot setup complete at $CHROOT_ROOT"
