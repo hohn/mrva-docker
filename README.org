@@ -118,8 +118,9 @@
      limactl start deb12
    #+END_SRC
 
+** migrating the containers
+   see [[./lima/setup-agent-chroot.sh]]
 
-** steps
 * Using the Containers
 ** Running the containers
    1. Start the containers
