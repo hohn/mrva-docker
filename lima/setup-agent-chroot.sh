@@ -2,11 +2,16 @@
 # === machine setup ===
 sudo apt update
 
-sudo apt install -y debootstrap unzip
+sudo apt install -y debootstrap unzip golang
 
 # === Config ===
 CHROOT_ROOT=/srv/mrva/agent-root
-GO_SRC_DIR=/home/hohn/work-gh/mrva/mrvaagent
+
+# # linux host
+# GO_SRC_DIR=/home/hohn/work-gh/mrva/mrvaagent
+
+# mac host
+GO_SRC_DIR=/Users/hohn/work-gh/mrva/mrvaagent
 CODEQL_VERSION=latest
 
 
@@ -46,10 +51,20 @@ export CODEQL_CLI_PATH=/opt/codeql/codeql
 export CODEQL_JAVA_HOME=/usr
 EOF
 
+# === machine setup: go ===
+cd /usr/local
+sudo curl -LO https://go.dev/dl/go1.22.0.linux-arm64.tar.gz
+sudo rm -rf /usr/local/go
+sudo tar -xzf go1.22.0.linux-arm64.tar.gz
+sudo ln -s /usr/local/go/bin/go /usr/local/bin/go
+sudo apt remove -y golang
+
+
 # === Build Go binary ===
 echo "[5/6] Building mrvaagent Go binary"
 cd "$GO_SRC_DIR"
-GO111MODULE=on CGO_ENABLED=0 go build -o mrvaagent-binary
+export GO111MODULE=on CGO_ENABLED=0 
+go build -o mrvaagent-binary
 
 echo "  -> Installing binary to chroot"
 sudo cp mrvaagent-binary "$CHROOT_ROOT/usr/local/bin/mrvaagent"
