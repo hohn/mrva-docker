@@ -55,6 +55,71 @@
    - Physical separation (Docker images/filesystems) that's painful for development
    - Fast navigation and full visibility via iTerm2 panes
 
+** vm chroots from docker
+   The chroot will have the same directory structure as the Docker
+   By  following  standard layout with debootstrap or debian:bullseye as base:
+
+   #+BEGIN_SRC sh 
+     /bin 
+     /etc 
+     /lib 
+     /usr 
+     /opt 
+     /tmp 
+     /var 
+   #+END_SRC
+
+   This aligns precisely with what a Docker image would have. The only differences
+   might be:
+
+   | Path        | Docker                       | chroot via debootstrap      |
+   | /root       | present but unused           | optional, often empty       |
+   | /home       | sometimes empty in both      | create it if needed |
+   | /proc, /sys | managed by container runtime | mount manually if needed    |
+
+** lima machine creation
+   #+BEGIN_SRC sh 
+     limactl  create -h
+     # Create an instance of Lima
+     limactl create --list-templates
+
+     # create deb12
+     limactl create                                  \
+             --arch aarch64                          \
+             --cpus 8                                \
+             --disk 20                               \
+             --memory 8.0                            \
+             --name deb12                            \
+             template://debian-12
+
+     # start deb12
+     limactl start deb12
+
+     # enter deb12
+     limactl shell deb12
+
+     # admin
+     limactl list
+   #+END_SRC
+
+   In 
+   : ~/.lima/deb12/lima.yaml
+   add
+   #+BEGIN_SRC yaml
+     - location: "/Users/hohn/work-gh/mrva"
+       writable: true
+   #+END_SRC
+   to the
+   : mounts:
+   section.
+   Then,
+   #+BEGIN_SRC sh 
+     limactl stop deb12
+     limactl start deb12
+   #+END_SRC
+
+
+** steps
 * Using the Containers
 ** Running the containers
    1. Start the containers
