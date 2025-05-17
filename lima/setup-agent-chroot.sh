@@ -2,7 +2,7 @@
 # === machine setup ===
 sudo apt update
 
-sudo apt install -y debootstrap unzip golang
+sudo apt install -y debootstrap unzip golang git
 
 # === Config ===
 CHROOT_ROOT=/srv/mrva/agent-root
@@ -58,7 +58,8 @@ sudo rm -rf /usr/local/go
 sudo tar -xzf go1.22.0.linux-arm64.tar.gz
 sudo ln -s /usr/local/go/bin/go /usr/local/bin/go
 sudo apt remove -y golang
-
+# ensure correct version is first:
+export PATH=/usr/local/go/bin:$PATH
 
 # === Build Go binary ===
 echo "[5/6] Building mrvaagent Go binary"
