@@ -1,6 +1,35 @@
 # -*- coding: utf-8 -*-
 #+OPTIONS: H:3 num:t \n:nil @:t ::t |:t ^:{} f:t *:t TeX:t LaTeX:t skip:nil p:nil
 
+* lima vm
+  When dealing with a highly stateful, evolving system, development workflows that
+  treat containers as immutable black boxes fall apart. Docker's model is great
+  for microservices and stateless demos — but not for real systems where:
+  - Executables change frequently (still coding)
+  - Data must persist (and be inspected live)
+  - Containers cannot be restarted casually (because they are the system)
+
+  Inside a single, well-managed VM we can
+  - Mount real filesystems (/data, /code, /state) — no awkward volume plugins
+  - Recompile and make install — no need to rebuild images
+  - Keep all services running — no data loss
+  - Log in and debug anything interactively
+
+  This is the exact model used before container cargo-culting took over.
+
+  For local *development* of a complex, stateful system like MRVA, dumping Docker in
+  favor of chroot or systemd-nspawn-style environments gives us:
+  - Full control over state, logs, mounts
+  - Zero rebuild delay
+  - Native process inspection, debugging, and file editing
+  - Persistent state without Docker’s volume opacity
+  - Easy replication of logical components via shell or Make
+
+
+  #+BEGIN_SRC sh 
+
+  #+END_SRC
+
 * Using the Containers
 ** Running the containers
    1. Start the containers
@@ -65,6 +94,28 @@
        docker exec mrva-agent pkill mrvaagent
 
      #+END_SRC
+   - gh-mrva
+     #+BEGIN_SRC sh 
+       #* Cross-compile locally
+       cd ~/work-gh/mrva/gh-mrva
+       go mod edit -replace="github.com/GitHubSecurityLab/gh-mrva=/Users/hohn/work-gh/mrva/gh-mrva"
+       go mod tidy 
+       GOOS=linux GOARCH=arm64 go build
+
+       #* Look for the gh-mrva name in the process table
+       docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+
+
+
+       #* Copy the new binary
+       cd ~/work-gh/mrva/gh-mrva
+       docker cp mrvaagent mrva-agent:/usr/local/bin/mrvaagent
+
+       #* Restart the binary
+       docker exec mrva-agent pkill mrvaagent
+
+     #+END_SRC
+
 
 ** Use gh-mrva container to send request via cli
 *** Start container and check gh-mrva tool
