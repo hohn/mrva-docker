@@ -77,6 +77,17 @@
    | /home       | sometimes empty in both      | create it if needed |
    | /proc, /sys | managed by container runtime | mount manually if needed    |
 
+   Compare to Docker:
+
+    | Feature                    | VM + chroot setup      | Docker               |
+    | Rebuild control            | Full, script-driven    | Layer cache voodoo   |
+    | File system transparency   | Total                  | Hidden layers        |
+    | Tool version management    | Shared or isolated     | Always isolated      |
+    | Dev→debug roundtrip        | Instant                | Context build/upload |
+    | Disk efficiency            | Optional               | Layered, rigid       |
+    | Mental model               | File tree + script     | "Magic image"        |
+    | Debug container during run | Simple chroot          | Unnatural UX         |
+
 ** lima machine creation
    #+BEGIN_SRC sh 
      limactl  create -h
@@ -118,8 +129,12 @@
      limactl start deb12
    #+END_SRC
 
-** migrating the containers
+** migrating the containers -- agent
    see [[./lima/setup-agent-chroot.sh]]
+** migrating the containers -- server
+   see [[./lima/setup-server-chroot.sh]]
+** migrating the containers -- ghmrva
+   see [[./lima/setup-ghmrva-chroot.sh]]
 
 * Using the Containers
 ** Running the containers
