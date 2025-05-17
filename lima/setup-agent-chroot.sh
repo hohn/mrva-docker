@@ -1,7 +1,8 @@
 #!/bin/bash
 # === machine setup ===
 sudo apt update
-sudo apt install -y debootstrap
+
+sudo apt install -y debootstrap unzip
 
 # === Config ===
 CHROOT_ROOT=/srv/mrva/agent-root
@@ -26,14 +27,17 @@ sudo chroot "$CHROOT_ROOT" bash -c "
 "
 
 # === Install CodeQL CLI ===
+cd /Users/hohn/work-gh/mrva/mrva-docker/lima
 echo "[3/6] Installing CodeQL CLI"
-TAG=$(curl -s https://api.github.com/repos/github/codeql-cli-binaries/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+TAG=v2.21.3
+# # update codeql version via
+# TAG=$(curl -s https://api.github.com/repos/github/codeql-cli-binaries/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
 echo "  -> Using CodeQL version: $TAG"
 mkdir -p "$CHROOT_ROOT/opt"
 curl -L "https://github.com/github/codeql-cli-binaries/releases/download/$TAG/codeql-linux64.zip" -o /tmp/codeql.zip
-unzip /tmp/codeql.zip -d "$CHROOT_ROOT/opt"
-rm /tmp/codeql.zip
-sudo chmod -R +x "$CHROOT_ROOT/opt/codeql"
+sudo unzip -q /tmp/codeql.zip -d "$CHROOT_ROOT/opt"
+# optional:
+# rm /tmp/codeql.zip
 
 # === Set CodeQL env vars ===
 echo "[4/6] Adding CodeQL environment to chroot"
