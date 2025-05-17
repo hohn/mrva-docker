@@ -1,7 +1,21 @@
 # -*- coding: utf-8 -*-
 #+OPTIONS: H:3 num:t \n:nil @:t ::t |:t ^:{} f:t *:t TeX:t LaTeX:t skip:nil p:nil
+#+HTML_HEAD: <style>
+#+HTML_HEAD: body {
+#+HTML_HEAD:   font-family: "Merriweather Sans", "Avenir", "Average Sans", "Merriweather", "Lao Sangam MN", "Myanmar Sangam MN", "Songti SC", "Kohinoor Devanagari", Menlo, Helvetica, Verdana, sans-serif;
+#+HTML_HEAD: }
+#+HTML_HEAD: pre, code {
+#+HTML_HEAD:   padding: 5pt;
+#+HTML_HEAD:   font-family: "IBM Plex Mono", "Andale Mono", "Bitstream Vera Sans Mono", monospace, courier;
+#+HTML_HEAD:   font-style: normal;
+#+HTML_HEAD:   font-weight: 400;
+#+HTML_HEAD:   font-size: 0.80em;
+#+HTML_HEAD:   background-color: #f0f0f0;
+#+HTML_HEAD: }
+#+HTML_HEAD: </style>
 
 * lima vm
+** intro
   When dealing with a highly stateful, evolving system, development workflows that
   treat containers as immutable black boxes fall apart. Docker's model is great
   for microservices and stateless demos — but not for real systems where:
@@ -15,8 +29,6 @@
   - Keep all services running — no data loss
   - Log in and debug anything interactively
 
-  This is the exact model used before container cargo-culting took over.
-
   For local *development* of a complex, stateful system like MRVA, dumping Docker in
   favor of chroot or systemd-nspawn-style environments gives us:
   - Full control over state, logs, mounts
@@ -25,10 +37,23 @@
   - Persistent state without Docker’s volume opacity
   - Easy replication of logical components via shell or Make
 
+** Current Logical Structure
+   Using a 2x3 terminal layout in iterm, we have
 
-  #+BEGIN_SRC sh 
+   | Window | Directory     |
+   | UL     | mrvaagent     |
+   | UM     | mrvacommander |
+   | UR     | mrvahepc      |
+   | LL     | mrvaserver    |
+   | LM     | mrva-docker   |
+   | LR     | vscode-codeql |
 
-  #+END_SRC
+   Each of these corresponds to a separate Git repo, aligned with a Docker container.
+
+   This gives 
+   - Logical alignment between containers and repos
+   - Physical separation (Docker images/filesystems) that's painful for development
+   - Fast navigation and full visibility via iTerm2 panes
 
 * Using the Containers
 ** Running the containers
