@@ -594,7 +594,6 @@ grep 'docker tag' containers/*/*.org containers/*/Makefile
   view container image list on ghcr.io: https://github.com/hohn?tab=packages
 
 * Project Tools
-
   This project, mrva-docker, is the highest-level part of the project as it
   packages all others.
   So it also houses simple project tools.
