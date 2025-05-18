@@ -23,6 +23,34 @@
 #+HTML_HEAD: }
 #+HTML_HEAD: </style>
 
+* TODO lima vm for running docker
+  #+BEGIN_SRC sh 
+     limactl  create -h
+     # Create an instance of Lima
+     limactl create --list-templates
+
+     # create deb12
+     limactl create                                  \
+             --arch aarch64                          \
+             --cpus 8                                \
+             --disk 20                               \
+             --memory 8.0                            \
+             --name deb12                            \
+             template://debian-12
+
+     # admin
+     limactl list
+
+     # start deb12
+     limactl start deb12
+
+     # enter deb12
+     limactl shell deb12
+
+
+  #+END_SRC
+
+  
 * TODO lima vm
 ** intro
   When dealing with a highly stateful, evolving system, development workflows that
