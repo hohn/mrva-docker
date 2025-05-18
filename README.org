@@ -23,7 +23,7 @@
 #+HTML_HEAD: }
 #+HTML_HEAD: </style>
 
-* lima vm
+* TODO lima vm
 ** intro
   When dealing with a highly stateful, evolving system, development workflows that
   treat containers as immutable black boxes fall apart. Docker's model is great
@@ -99,7 +99,6 @@
     | Mental model               | File tree + script  | "Magic image"        |
     | Debug container during run | Simple chroot       | Unnatural UX         |
 
-
 ** Rebuild Cadence
     | Stage            | Scope         | Frequency          | Cost     | Notes                        |
     |------------------+---------------+--------------------+----------+------------------------------|
@@ -150,12 +149,19 @@
      limactl start deb12
    #+END_SRC
 
-** migrating the containers -- agent
-   see [[./lima/setup-agent-chroot.sh]]
-** migrating the containers -- server
-   see [[./lima/setup-server-chroot.sh]]
-** migrating the containers -- ghmrva
-   see [[./lima/setup-ghmrva-chroot.sh]]
+** TODO migrating the containers to chroot
+   Inside the lima vm
+   #+BEGIN_SRC sh 
+     # enter vm
+     limactl shell deb12
+
+     # expand setup scripts
+     m4 common-setup.m4 agent-setup.m4 > setup-agent-chroot.sh
+     m4 common-setup.m4 server-setup.m4 > setup-server-chroot.sh     
+     m4 common-setup.m4 ghmrva-setup.m4 > setup-ghmrva-chroot.sh
+     m4 common-setup.m4 mrvastore-setup.m4 > setup-mrvastore-chroot.sh
+
+   #+END_SRC
 
 * Using the Containers
 ** Running the containers
