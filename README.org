@@ -85,17 +85,7 @@
 
     # Build container images
     export MAG_VERSION=0.4.0
-    {
-        # Agent
-        cd /Users/hohn/work-gh/mrva/mrva-docker/containers/agent/
-        MAG_TARGET=mrva-agent:0.4.0
-        docker build --no-cache --network host -t ${MAG_TARGET} .
-    }
-    {
-        # server
-        cd /Users/hohn/work-gh/mrva/mrva-docker/containers/server
-        docker build --no-cache --network host -t mrva-server:${MAG_VERSION} .
-    }
+
     {
         # ghmrva
         cd /Users/hohn/work-gh/mrva/mrva-docker/containers/ghmrva/
@@ -113,6 +103,17 @@
 
         # Usual build
         docker build --no-cache -t mrva-hepc-container:${MAG_VERSION} .
+    }
+    {
+        # server
+        cd /Users/hohn/work-gh/mrva/mrva-docker/containers/server
+        docker build --no-cache --network host -t mrva-server:${MAG_VERSION} .
+    }
+    {
+        # Agent
+        cd /Users/hohn/work-gh/mrva/mrva-docker/containers/agent/
+        MAG_TARGET=mrva-agent:0.4.0
+        docker build --no-cache --network host -t ${MAG_TARGET} .
     }
 
     # 
