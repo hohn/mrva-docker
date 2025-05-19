@@ -101,7 +101,11 @@
         cd /Users/hohn/work-gh/mrva/mrva-docker/containers/ghmrva/
         docker build --no-cache -t client-ghmrva-container:${MAG_VERSION} .
     }
-
+    {
+        # code-server
+        cd /Users/hohn/work-gh/mrva/mrva-docker/containers/vscode/
+        docker build --no-cache -t code-server-initialized:${MAG_VERSION} .
+    }
 
     # 
     docker image ls
