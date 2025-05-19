@@ -88,15 +88,18 @@
     {
         # Agent
         cd /Users/hohn/work-gh/mrva/mrva-docker/containers/agent/
-    
         MAG_TARGET=mrva-agent:0.4.0
         docker build --no-cache --network host -t ${MAG_TARGET} .
     }
     {
         # server
         cd /Users/hohn/work-gh/mrva/mrva-docker/containers/server
-
         docker build --no-cache --network host -t mrva-server:${MAG_VERSION} .
+    }
+    {
+        # ghmrva
+        cd /Users/hohn/work-gh/mrva/mrva-docker/containers/ghmrva/
+        docker build --no-cache -t client-ghmrva-container:${MAG_VERSION} .
     }
 
 
