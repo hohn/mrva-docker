@@ -23,7 +23,7 @@
 #+HTML_HEAD: }
 #+HTML_HEAD: </style>
 
-* TODO lima vm for running docker
+* lima vm for running docker
   #+BEGIN_SRC sh 
     limactl  create -h
     # Create an instance of Lima
@@ -123,34 +123,6 @@
     cd /Users/hohn/work-gh/mrva/mrva-docker
     docker compose -f docker-compose-demo.yml up
 
-
-
-
-    #* install podman as docker replacement
-    sudo apt update
-    sudo apt install -y podman podman-compose
-
-
-
-
-    # notes
-    podman compose -f docker-compose-demo.yml up -d       # run detached
-    podman compose -f docker-compose-demo.yml down        # stop and clean up
-
-
-    docker-compose -f docker-compose-demo.yml up
-
-    pastelines () {
-        while true; do
-            tmpfile=$(mktemp)
-            echo "=== Paste commands (Ctrl-D to end) ==="
-            cat > "$tmpfile"
-            echo "=== Executing ==="
-            bash "$tmpfile"
-            echo "=== Done ==="
-            rm -f "$tmpfile"
-        done
-    }
   #+END_SRC
 
   
