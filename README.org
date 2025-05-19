@@ -106,6 +106,14 @@
         cd /Users/hohn/work-gh/mrva/mrva-docker/containers/vscode/
         docker build --no-cache -t code-server-initialized:${MAG_VERSION} .
     }
+    {
+        # hepc
+        cd /Users/hohn/work-gh/mrva/mrva-docker/containers/hepc
+        rm -fR ./mrvahepc && cp -r  ../../../mrvahepc .
+
+        # Usual build
+        docker build --no-cache -t mrva-hepc-container:${MAG_VERSION} .
+    }
 
     # 
     docker image ls
