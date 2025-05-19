@@ -25,29 +25,117 @@
 
 * TODO lima vm for running docker
   #+BEGIN_SRC sh 
-     limactl  create -h
-     # Create an instance of Lima
-     limactl create --list-templates
+    limactl  create -h
+    # Create an instance of Lima
+    limactl create --list-templates
 
-     # create deb12
-     limactl create                                  \
-             --arch aarch64                          \
-             --cpus 8                                \
-             --disk 20                               \
-             --memory 8.0                            \
-             --name deb12                            \
-             template://debian-12
+    # create deb12
+    limactl create                                  \
+            --arch aarch64                          \
+            --cpus 8                                \
+            --disk 20                               \
+            --memory 8.0                            \
+            --name deb12                            \
+            template://debian-12
 
-     # admin
-     limactl list
+    # admin
+    limactl list
 
-     # start deb12
-     limactl start deb12
+    # start deb12
+    limactl start deb12
 
-     # enter deb12
-     limactl shell deb12
+    # enter deb12
+    limactl shell deb12
 
 
+    # install docker
+    # 1. Prerequisites
+    sudo apt update
+    sudo apt install -y ca-certificates curl gnupg lsb-release
+
+    # 2. Add Docker’s official GPG key
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/debian/gpg | \
+        sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+    # 3. Add Docker’s APT repo
+    echo \
+      "deb [arch=$(dpkg --print-architecture) \
+       signed-by=/etc/apt/keyrings/docker.gpg] \
+       https://download.docker.com/linux/debian \
+       $(lsb_release -cs) stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    # 4. Install Docker packages
+    sudo apt update
+    sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+    # enable daemons
+    sudo systemctl enable docker
+    sudo systemctl start docker
+
+    # add self to docker group
+    sudo usermod -aG docker $USER
+    limactl stop deb12
+    limactl start deb12
+    limactl shell deb12
+    groups  # should now show "docker"
+
+
+    # Build container images
+    export MAG_VERSION=0.4.0
+    {
+        # Agent
+        cd /Users/hohn/work-gh/mrva/mrva-docker/containers/agent/
+    
+        MAG_TARGET=mrva-agent:0.4.0
+        docker build --no-cache --network host -t ${MAG_TARGET} .
+    }
+    {
+        # server
+        cd /Users/hohn/work-gh/mrva/mrva-docker/containers/server
+
+        docker build --no-cache --network host -t mrva-server:${MAG_VERSION} .
+    }
+
+
+    # 
+    docker image ls
+
+
+    # run containers
+    cd /Users/hohn/work-gh/mrva/mrva-docker
+    docker compose -f docker-compose-demo.yml up
+
+
+
+
+    #* install podman as docker replacement
+    sudo apt update
+    sudo apt install -y podman podman-compose
+
+
+
+
+    # notes
+    podman compose -f docker-compose-demo.yml up -d       # run detached
+    podman compose -f docker-compose-demo.yml down        # stop and clean up
+
+
+    docker-compose -f docker-compose-demo.yml up
+
+    pastelines () {
+        while true; do
+            tmpfile=$(mktemp)
+            echo "=== Paste commands (Ctrl-D to end) ==="
+            cat > "$tmpfile"
+            echo "=== Executing ==="
+            bash "$tmpfile"
+            echo "=== Done ==="
+            rm -f "$tmpfile"
+        done
+    }
   #+END_SRC
 
   
