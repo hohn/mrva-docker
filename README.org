@@ -116,9 +116,8 @@
         docker build --no-cache --network host -t ${MAG_TARGET} .
     }
 
-    # 
+    # list images
     docker image ls
-
 
     # run containers
     cd /Users/hohn/work-gh/mrva/mrva-docker

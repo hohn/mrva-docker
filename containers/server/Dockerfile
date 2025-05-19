@@ -25,9 +25,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG CODEQL_VERSION=latest
 
 # Install packages
-RUN echo 'Acquire::http::Proxy "http://127.0.0.1:3142";' \
-    > /etc/apt/apt.conf.d/01proxy && \
-    apt-get update && apt-get install --no-install-recommends --assume-yes \
+RUN apt-get update && apt-get install --no-install-recommends --assume-yes \
     unzip curl ca-certificates default-jdk && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 

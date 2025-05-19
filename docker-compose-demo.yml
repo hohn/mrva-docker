@@ -1,7 +1,7 @@
 services:
     # dbssvc:
     #     # ./containers/dbsdata/Dockerfile
-    #     image: ghcr.io/hohn/dbsdata-container:0.1.24
+    #     image: dbsdata-container:0.1.24
     #     command: tail -f /dev/null # Keep the container running            
     #     volumes:
     #         - dbsdata:/data
@@ -53,7 +53,7 @@ services:
     client-ghmrva:
         # ./containers/ghmrva/Dockerfile
         container_name: mrva-ghmrva
-        image: ghcr.io/hohn/client-ghmrva-container:0.1.24 
+        image: client-ghmrva-container:0.4.0
         network_mode: "service:server" # Share the 'server' network namespace
         environment:
             - SERVER_URL=http://localhost:8080  # 'localhost' now refers to 'server'
@@ -61,7 +61,7 @@ services:
     code-server:
         # ./containers/vscode/Dockerfile
         container_name: mrva-code-server
-        image: code-server-initialized:0.3.3
+        image: code-server-initialized:0.4.0
         ports:
             - "9080:9080"
         # XX: Include codeql binary in code-server (if it's not there already)
@@ -72,7 +72,7 @@ services:
      
     hepc:
         # ./containers/hepc/Dockerfile
-        image: ghcr.io/hohn/mrva-hepc-container:0.1.24
+        image: mrva-hepc-container:0.4.0
         container_name: mrva-hepc
         hostname: hepc
         command: >-
@@ -104,7 +104,7 @@ services:
      
     server:
         # ./containers/server/Dockerfile
-        image: ghcr.io/hohn/mrva-server:0.1.24
+        image: mrva-server:0.4.0
         command: [ '--mode=container', '--loglevel=debug' ]
         container_name: mrva-server
         hostname: server
@@ -125,7 +125,7 @@ services:
      
     agent:
         # ./containers/agent/Dockerfile
-        image: ghcr.io/hohn/mrva-agent:0.1.24
+        image: mrva-agent:0.4.0
         command: [ '--loglevel=debug' ]
         container_name: mrva-agent
         hostname: agent
