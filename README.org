@@ -299,14 +299,14 @@
    - server
      #+BEGIN_SRC sh 
        #* Cross-compile locally
-       cd ~/work-gh/mrva/mrvaserver
+       cd /Users/hohn/work-gh/mrva/mrvaserver
        make msla
 
        #* check for running containers
        docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
 
        #* Copy the new binary
-       cd ~/work-gh/mrva/mrvaserver
+       cd /Users/hohn/work-gh/mrva/mrvaserver
        docker cp mrvaserver mrva-server:/usr/local/bin/mrvaserver
 
        #* Restart the binary
@@ -316,14 +316,14 @@
    - agent
      #+BEGIN_SRC sh 
        #* Cross-compile locally
-       cd ~/work-gh/mrva/mrvaagent
+       cd /Users/hohn/work-gh/mrva/mrvaagent
        make mala
 
        #* Look for the agent's name in the process table
        docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
 
        #* Copy the new binary
-       cd ~/work-gh/mrva/mrvaagent
+       cd /Users/hohn/work-gh/mrva/mrvaagent
        docker cp mrvaagent mrva-agent:/usr/local/bin/mrvaagent
 
        #* Restart the binary
@@ -333,7 +333,7 @@
    - gh-mrva
      #+BEGIN_SRC sh 
        #* Cross-compile locally
-       cd ~/work-gh/mrva/gh-mrva
+       cd /Users/hohn/work-gh/mrva/gh-mrva
        go mod edit -replace="github.com/GitHubSecurityLab/gh-mrva=/Users/hohn/work-gh/mrva/gh-mrva"
        go mod tidy 
        GOOS=linux GOARCH=arm64 go build
@@ -341,17 +341,10 @@
        #* Look for the gh-mrva name in the process table
        docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
 
-
-
        #* Copy the new binary
-       cd ~/work-gh/mrva/gh-mrva
-       docker cp mrvaagent mrva-agent:/usr/local/bin/mrvaagent
-
-       #* Restart the binary
-       docker exec mrva-agent pkill mrvaagent
-
+       cd /Users/hohn/work-gh/mrva/gh-mrva
+       docker cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
      #+END_SRC
-
 
 ** Use gh-mrva container to send request via cli
 *** Start container and check gh-mrva tool

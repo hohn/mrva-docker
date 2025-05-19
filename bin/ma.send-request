@@ -74,7 +74,7 @@ gh-mrva download --session mirva-session-2372   \
         --output-dir mirva-session-2372
 
 
-#**  Set up QLPack for the next query
+#*  Set up QLPack for the next query
 # Create a qlpack.yml file required for the next query
 cat > ~/work-gh/mrva/gh-mrva/qlpack.yml <<eof
 library: false
@@ -106,19 +106,22 @@ eof
 # Submit a new MRVA job with the second query
 cd ~/work-gh/mrva/gh-mrva/
 gh-mrva submit                                      \
-        --language cpp --session mirva-session-2261 \
+        --language cpp --session mirva-session-2661 \
         --list mirva-list                           \
         --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
 
 
 # Check the status of the second session
-gh-mrva status --session mirva-session-2261
+gh-mrva status --session mirva-session-2661
 
 # Download SARIF files and databases for the second query
 cd ~/work-gh/mrva/gh-mrva/
-gh-mrva download --session mirva-session-2261   \
+gh-mrva download --session mirva-session-2661   \
         --download-dbs                          \
-        --output-dir mirva-session-2261
+        --output-dir mirva-session-2661
 
-ls -l mirva-session-2261
+gh-mrva download --session mirva-session-2661   \
+        --output-dir mirva-session-2661
+
+ls -l mirva-session-2661
 
