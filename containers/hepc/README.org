@@ -1,4 +1,4 @@
-* Container Image Build
+* HEPC Container Image Build
   Follow the [[file:~/work-gh/mrva/mrvahepc/README.org::*Usage Sample][Usage Sample]] in mrvahepc to set up the repository and data there.  Then:
 
 ** Build container
@@ -7,13 +7,13 @@
      rm -fR ./mrvahepc && cp -r  ../../../mrvahepc .
 
      # Usual build
-     docker build -t mrva-hepc-container:0.1.24 -f Dockerfile .
+     docker build -t mrva-hepc-container:0.4.0 -f Dockerfile .
 
      # Build with full output, e.g. RUN ls 
-     docker build --progress=plain --no-cache -t mrva-hepc-container:0.1.24 -f Dockerfile .
+     docker build --progress=plain --no-cache -t mrva-hepc-container:0.4.0 -f Dockerfile .
 
      # Run standalone
-     docker run -p 8070:8070 -ti mrva-hepc-container:0.1.24
+     docker run -p 8070:8070 -ti mrva-hepc-container:0.4.0
 
      # Test server
      curl 127.0.0.1:8070/index -o - 2>/dev/null | wc -l
@@ -29,7 +29,14 @@
      wget $(echo $url|sed 's|http://hepc|http://127.0.0.1:8070|g;') 
    #+END_SRC
 
-** Access this container from another
+** Access this container
+   from host, when run by docker-compose
+   #+BEGIN_SRC sh 
+     cd ~/work-gh/mrva/mrva-docker/containers/hepc
+     docker exec -it mrva-hepc bash
+   #+END_SRC
+
+   from another
    #+BEGIN_SRC sh 
      # Enter container
      docker exec -it mrva-docker-client-ghmrva-1 bash
@@ -42,20 +49,19 @@
 ** Push this container
    #+BEGIN_SRC sh
      # Push container
-     docker tag mrva-hepc-container:0.1.24 ghcr.io/hohn/mrva-hepc-container:0.1.24
-     docker push ghcr.io/hohn/mrva-hepc-container:0.1.24
-     # 0.1.24: digest: sha256:b089c6495b04ed6b4a4f467cd16d671b2404834c53ba020d3afd195a4ec870fb size: 2831
+     docker tag mrva-hepc-container:0.4.0 ghcr.io/hohn/mrva-hepc-container:0.4.0
+     docker push ghcr.io/hohn/mrva-hepc-container:0.4.0
    #+END_SRC
 
 ** Test the registry image
    #+BEGIN_SRC sh
      # Test pushed container
-     docker pull ghcr.io/hohn/mrva-hepc-container:0.1.24
+     docker pull ghcr.io/hohn/mrva-hepc-container:0.4.0
 
      docker run                                              \
             -p 8070:8070                                     \
             --name test-mrva-hepc-container                  \
-            --rm -it ghcr.io/hohn/mrva-hepc-container:0.1.24
+            --rm -it ghcr.io/hohn/mrva-hepc-container:0.4.0
 
 
      curl 127.0.0.1:8070/index -o - 2>/dev/null | wc -l

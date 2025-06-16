@@ -1,22 +1,20 @@
-* server image setup
+* server container image build
   - build container
-    XX: use
-    : make all
     #+BEGIN_SRC sh 
       # Build the container via
       cd ~/work-gh/mrva/mrva-docker/containers/server/
-      docker build --no-cache --network host -t mrva-server:0.1.24 .
+      docker build --no-cache --network host -t mrva-server:0.4.0 .
 
       # The --network host  is needed when using ../aptcacher/
 
       # Run the container in standalone mode via
       cd ~/work-gh/mrva/mrva-docker/containers/server/
-      docker run -d mrva-server:0.1.24
+      docker run -d mrva-server:0.4.0
 
       # Just run bash in the container
       docker run --env-file ../../.env.container --rm -it \
              --entrypoint /bin/bash \
-             mrva-server:0.1.24
+             mrva-server:0.4.0
       # In the container:
       '
           ls /opt/codeql/codeql
@@ -27,22 +25,22 @@
 
   - Tag the container.  This is sufficient for further use on the local machine.
     #+BEGIN_SRC sh
-      docker tag mrva-server:0.1.24 ghcr.io/hohn/mrva-server:0.1.24
+      docker tag mrva-server:0.4.0 ghcr.io/hohn/mrva-server:0.4.0
     #+END_SRC
 
   - Push this container
     #+BEGIN_SRC sh
-      docker push ghcr.io/hohn/mrva-server:0.1.24
+      docker push ghcr.io/hohn/mrva-server:0.4.0
     #+END_SRC
 
   - Test the registry image
     #+BEGIN_SRC sh
       # Test pushed container
-      docker pull ghcr.io/hohn/mrva-server:0.1.24
+      docker pull ghcr.io/hohn/mrva-server:0.4.0
       docker run                                      \
              --env-file ../../.env.container          \
              --name test-mrva-server                  \
-             --rm -it ghcr.io/hohn/mrva-server:0.1.24 \
+             --rm -it ghcr.io/hohn/mrva-server:0.4.0 \
              --mode=container --loglevel=debug        \
              /bin/bash
     #+END_SRC

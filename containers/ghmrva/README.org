@@ -1,16 +1,21 @@
 * MRVA cli tools container
   Set up / run:
   #+BEGIN_SRC sh 
-    # Build
-    cd ~/work-gh/mrva/mrvacommander/client/containers/ghmrva/
-    make ghm
+    cd ~/work-gh/mrva/mrva-docker/containers/ghmrva/
+
+    docker build -t client-ghmrva-container:0.4.0 .
+
     # Run
-    docker run -ti  client-ghmrva-container:0.1.24 /bin/bash
+    docker run -ti  client-ghmrva-container:0.4.0 /bin/bash
 
     # In the container
     gh-mrva -h
     codeql -h
 
-    # Push
-    make ghm-push
+    # tag
+    docker tag client-ghmrva-container:0.4.0 ghcr.io/hohn/client-ghmrva-container:0.4.0 
+
+    # push
+    docker push ghcr.io/hohn/client-ghmrva-container:0.4.0 
+
   #+END_SRC

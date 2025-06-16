@@ -1,17 +1,16 @@
-* agent image setup
+* agent image build
   - build container
     #+BEGIN_SRC sh 
       # Build the container via
       cd ~/work-gh/mrva/mrva-docker/containers/agent/
 
-      MAG_TARGET=mrva-agent:0.4.0
-      docker build --no-cache --network host -t ${MAG_TARGET} .
+      docker build --no-cache --network host -t mrva-agent:0.4.0 .
 
       # Run bash in the container in standalone mode
       cd ~/work-gh/mrva/mrva-docker/containers/agent/
       docker run --env-file ../../.env.container --rm -it \
              --entrypoint /bin/bash \
-             ${MAG_TARGET}
+             mrva-agent:0.4.0
       '
       ls /usr/local/bin/
       entrypoint.sh  mrvaagent
@@ -20,20 +19,20 @@
 
   - Tag the container.  This is sufficient for further use on the local machine.
     #+BEGIN_SRC sh
-      docker tag ${MAG_TARGET} ghcr.io/hohn/${MAG_TARGET}
+      docker tag ${MAG_TARGET} ghcr.io/hohn/mrva-agent:0.4.0
     #+END_SRC
 
   - Push this container
     #+BEGIN_SRC sh
-      docker push ghcr.io/hohn/${MAG_TARGET}
+      docker push ghcr.io/hohn/mrva-agent:0.4.0
     #+END_SRC
 
   - Test the registry image
     #+BEGIN_SRC sh
       # Test pushed container
-      docker pull ghcr.io/hohn/${MAG_TARGET}
+      docker pull ghcr.io/hohn/mrva-agent:0.4.0
       docker run --env-file ../../.env.container --rm -it \
              --entrypoint /bin/bash \
-             ${MAG_TARGET}
+             mrva-agent:0.4.0
     #+END_SRC
     

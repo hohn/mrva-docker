@@ -268,26 +268,33 @@
 
 * Using the Containers
 ** Running the containers
-   1. Start the containers
+   1. Build local container images; follow [[./docker-compose-demo.yml]]
+      + client-ghmrva: [[file:containers/ghmrva/README.org::*MRVA cli tools container][MRVA cli tools container]]
+      + code-server: [[file:containers/vscode/README.org::*MRVA VS Code server container][MRVA VS Code server container]]
+      + hepc: [[file:containers/hepc/README.org::*HEPC Container Image Build][HEPC Container Image Build]]
+      + [[file:containers/server/README.org::*server container image build][server container image build]]
+      + agent: [[file:containers/agent/README.org::*agent image build][agent image build]]
+
+   2. Start the containers
      #+BEGIN_SRC sh 
        cd ~/work-gh/mrva/mrva-docker/
        docker-compose -f docker-compose-demo.yml down
        docker ps
        docker-compose -f docker-compose-demo.yml up 
      #+END_SRC
-   2. View all logs
+   3. View all logs
       : docker-compose logs
-   3. Follow all logs if started with =-d=
+   4. Follow all logs if started with =-d=
       #+BEGIN_SRC sh 
         docker-compose logs -f
       #+END_SRC
-   4. Follow single container, =server=, logging via
+   5. Follow single container, =server=, logging via
       #+BEGIN_SRC sh 
         cd ~/work-gh/mrva/mrvacommander
         docker-compose up -d
         docker-compose logs -f server
       #+END_SRC
-   5. Cleanup in case of obscure errors (network or other)
+   6. Cleanup in case of obscure errors (network or other)
       #+BEGIN_SRC sh 
         docker-compose -f docker-compose-demo.yml down --volumes --remove-orphans
         docker network prune
@@ -358,18 +365,18 @@
 
 *** Set up gh-mrva configuration
     #+BEGIN_SRC sh 
-       # Create configuration directory and generate config file for gh-mrva
-       mkdir -p ~/.config/gh-mrva
-       cat > ~/.config/gh-mrva/config.yml <<eof
-       # Configuration file for the gh-mrva tool
-       # codeql_path: Path to the CodeQL distribution (not used in this setup)
-       # controller: Placeholder for a controller NWO (not relevant in this setup)
-       # list_file: Path to the repository selection JSON file
+      # Create configuration directory and generate config file for gh-mrva
+      mkdir -p ~/.config/gh-mrva
+      cat > ~/.config/gh-mrva/config.yml <<eof
+      # Configuration file for the gh-mrva tool
+      # codeql_path: Path to the CodeQL distribution (not used in this setup)
+      # controller: Placeholder for a controller NWO (not relevant in this setup)
+      # list_file: Path to the repository selection JSON file
 
-       codeql_path: not-used/codeql-path
-       controller: not-used/mirva-controller
-       list_file: $HOME/work-gh/mrva/gh-mrva/gh-mrva-selection.json
-       eof
+      codeql_path: not-used/codeql-path
+      controller: not-used/mirva-controller
+      list_file: $HOME/work-gh/mrva/gh-mrva/gh-mrva-selection.json
+      eof
 
     #+END_SRC
 
@@ -470,7 +477,7 @@
       # Submit a new MRVA job with the second query
       cd ~/work-gh/mrva/gh-mrva/
       gh-mrva submit                                      \
-              --language cpp --session mirva-session-2161 \
+              --language cpp --session mirva-session-2261 \
               --list mirva-list                           \
               --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
     #+END_SRC
@@ -478,15 +485,15 @@
 *** Check status and download results for the second session
     #+BEGIN_SRC sh 
       # Check the status of the second session
-      gh-mrva status --session mirva-session-2161
+      gh-mrva status --session mirva-session-2261
 
       # Download SARIF files and databases for the second query
       cd ~/work-gh/mrva/gh-mrva/
-      gh-mrva download --session mirva-session-2161   \
+      gh-mrva download --session mirva-session-2261   \
               --download-dbs                          \
-              --output-dir mirva-session-2161
+              --output-dir mirva-session-2261
 
-      ls -l mirva-session-2161
+      ls -l mirva-session-2261
 
     #+END_SRC
 

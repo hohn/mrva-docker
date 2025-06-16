@@ -32,7 +32,6 @@
       /bin/code-server --force --install-extension vscode-codeql-*.vsix
       #+END_SRC
 
-
   - pre-container build
     #+BEGIN_SRC sh 
       # Collect artifacts
@@ -41,14 +40,14 @@
 
       # Build the container via 
       cd ~/work-gh/mrva/mrva-docker/containers/vscode/
-      docker build -t code-server-initialized:0.3.3 .
+      docker build -t code-server-initialized:0.4.0 .
       # # For debugging and significant Dockerfile changes, build from scratch:
-      # docker build --no-cache -t code-server-initialized:0.3.3 .
+      # docker build --no-cache -t code-server-initialized:0.4.0 .
 
       # Run the container in standalone mode via 
       cd ~/work-gh/mrva/mrva-docker/containers/vscode/
       docker run -v ~/work-gh/mrva/vscode-codeql:/work-gh/mrva/vscode-codeql \
-             -d -p 9080:9080 code-server-initialized:0.3.3
+             -d -p 9080:9080 code-server-initialized:0.4.0
 
       # Connect to it, password is mrva
       open http://localhost:9080/?folder=/home/coder
@@ -178,7 +177,7 @@
           # 0:$ docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
 
           VSCID=$(docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}" |grep code-server |cut -f1 -d " ")
-          docker commit $VSCID mrva-client-vscode:0.3.3
+          docker commit $VSCID mrva-client-vscode:0.4.0
         #+END_SRC
 
 
