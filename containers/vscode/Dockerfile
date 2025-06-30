@@ -51,7 +51,7 @@ RUN mkdir -p /home/coder/.local/ && \
 USER coder
 
 # Set environment variables
-ENV PASSWORD mrva
+ENV PASSWORD=mrva
 
 # Copy all potential vscode-codeql builds
 COPY ./artifacts/vscode-codeql-1.13.2-* /home/coder/

@@ -5,12 +5,17 @@
     #+BEGIN_SRC sh 
       # Build the container via 
       cd ~/work-gh/mrva/mrva-docker/containers/vscode/
-      docker build --no-cache -t code-server-initialized:0.1.24 .
+      docker build --no-cache -t code-server-initialized:0.4.0 .
 
       # Run the container in standalone mode via 
       cd ~/work-gh/mrva/mrva-docker/containers/vscode/
       docker run -v ~/work-gh/mrva/vscode-codeql:/work-gh/mrva/vscode-codeql \
-             -d -p 9080:9080 code-server-initialized:0.1.24 
+             -d -p 9080:9080 code-server-initialized:0.4.0 
+
+      # Tag it
+      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
+      docker tag code-server-initialized:0.4.0 \
+             ghcr.io/hohn/code-server-initialized:0.4.0 
     #+END_SRC
 
   - build vscode-codeql plugin
@@ -249,24 +254,24 @@
     #+BEGIN_SRC sh 
       docker ps
       # Check id column.  Use it below.
-      docker commit 2f3df413ae3b code-server-initialized:0.1.24
+      docker commit 2f3df413ae3b code-server-initialized:0.4.0
       # Keep the sha
       # sha256:1b382a721d8f3892ed22861701f19d3ed4b42a2db8d6d96b6f89fcb6e9c4161e
       docker kill 2f3df413ae3b
 
       # Make sure the image tag matches the sha
-      docker inspect code-server-initialized:0.1.24 |grep Id
+      docker inspect code-server-initialized:0.4.0 |grep Id
 
       # Run the image and check content
       docker run --rm -d -p 9080:9080 --name test-code-server-codeql \
-             code-server-initialized:0.1.24
+             code-server-initialized:0.4.0
     #+END_SRC
     Again connect to it at http://localhost:9080/?folder=/home/coder, password is =mrva=.
 
   - [ ] Push this container
     #+BEGIN_SRC sh 
       # Common
-      export CSI_TARGET=code-server-initialized:0.1.24
+      export CSI_TARGET=code-server-initialized:0.4.0
 
       # Push container
       docker tag ${CSI_TARGET} ghcr.io/hohn/${CSI_TARGET}

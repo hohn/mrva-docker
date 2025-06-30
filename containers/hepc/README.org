@@ -12,6 +12,11 @@
      # Build with full output, e.g. RUN ls 
      docker build --progress=plain --no-cache -t mrva-hepc-container:0.4.0 -f Dockerfile .
 
+     # tag it
+     cd ~/work-gh/mrva/mrva-docker/containers/hepc &&\
+         docker tag mrva-hepc-container:0.4.0 \
+                ghcr.io/hohn/mrva-hepc-container:0.4.0
+
      # Run standalone
      docker run -p 8070:8070 -ti mrva-hepc-container:0.4.0
 

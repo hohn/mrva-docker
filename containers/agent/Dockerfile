@@ -18,7 +18,7 @@ RUN go mod tidy && go build -o /app/mrvaagent-binary
 # RUN go mod download
 
 # Create a runtime container
-FROM ubuntu:24.10 as runner
+FROM ubuntu:24.10 AS runner
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Build argument for CodeQL version, defaulting to the latest release

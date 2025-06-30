@@ -19,7 +19,9 @@
 
   - Tag the container.  This is sufficient for further use on the local machine.
     #+BEGIN_SRC sh
-      docker tag ${MAG_TARGET} ghcr.io/hohn/mrva-agent:0.4.0
+      cd ~/work-gh/mrva/mrva-docker/containers/agent &&\
+          docker tag mrva-agent:0.4.0 \
+                 ghcr.io/hohn/mrva-agent:0.4.0
     #+END_SRC
 
   - Push this container

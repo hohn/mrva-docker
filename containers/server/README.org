@@ -25,7 +25,10 @@
 
   - Tag the container.  This is sufficient for further use on the local machine.
     #+BEGIN_SRC sh
-      docker tag mrva-server:0.4.0 ghcr.io/hohn/mrva-server:0.4.0
+      # tag it
+      cd ~/work-gh/mrva/mrva-docker/containers/server &&\
+          docker tag mrva-server:0.4.0 \
+                 ghcr.io/hohn/mrva-server:0.4.0
     #+END_SRC
 
   - Push this container
