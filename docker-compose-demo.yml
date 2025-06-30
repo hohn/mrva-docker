@@ -112,6 +112,7 @@ services:
         depends_on:
             - rabbitmq
             - mrvastore
+            - postgres
         env_file:
             - path: ./.env.container
               required: true
@@ -123,6 +124,19 @@ services:
         networks:
             - backend
      
+    postgres:
+        image: postgres:15
+        container_name: mrva-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: mrva
+            POSTGRES_PASSWORD: mrvapg
+            POSTGRES_DB: mrvadb
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        networks:
+          - backend
+
     agent:
         # ./containers/agent/Dockerfile
         image: mrva-agent:0.4.0
@@ -145,5 +159,6 @@ networks:
     backend:
         driver: bridge
 
-# volumes:
-#     dbsdata:
+volumes:
+    pgdata:
+
