@@ -20,7 +20,10 @@
      # Run standalone
      docker run -p 8070:8070 -ti mrva-hepc-container:0.4.0
 
-     # Test server
+     # shell in  hepc
+     docker run -ti mrva-hepc-container:0.4.0 /bin/bash
+
+     # Test server; also when running via compose
      curl 127.0.0.1:8070/index -o - 2>/dev/null | wc -l
 
      curl 127.0.0.1:8070/api/v1/latest_results/codeql-all \
