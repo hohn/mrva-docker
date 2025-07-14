@@ -618,6 +618,43 @@
 *** Submit the analysis job
       : Fprintf.ql > right click > run variant analysis
 
+** Inspect postgres container
+   #+BEGIN_SRC sh 
+     # Start an interactive bash shell inside the running Docker container
+     docker exec -it mrva-postgres bash
+
+     # Connect to the DB using psql
+     psql -U mrva -d mrvadb
+     {
+         # inside repl
+
+         \dt
+         #             List of relations
+         #  Schema |      Name       | Type  | Owner
+         # --------+-----------------+-------+-------
+         #  public | analyze_jobs    | table | mrva
+         #  public | analyze_results | table | mrva
+         #  public | job_info        | table | mrva
+         #  public | job_repo_map    | table | mrva
+         #  public | job_status      | table | mrva
+         #  (5 rows)
+         SELECT * FROM analyze_jobs;
+
+         SELECT * FROM analyze_results;
+
+         SELECT * FROM job_info;
+
+         SELECT * FROM job_repo_map;
+
+         SELECT * FROM job_status;
+
+    
+     }
+     pg_dump -U mrva -d mrvadb --data-only |less
+
+
+   #+END_SRC
+
 * Update Container Images
   XX:
   #+BEGIN_SRC sh 
