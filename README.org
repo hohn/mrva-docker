@@ -619,6 +619,18 @@
       : Fprintf.ql > right click > run variant analysis
 
 ** Inspect postgres container
+   From host
+   #+BEGIN_SRC sh 
+     docker volume ls
+     DRIVER    VOLUME NAME
+     local     4d1061ac2749d8e22000a40826a821ff22e43458ebed78dd3421b7c759bd978d
+     local     6611a5f26d9e146c68a8a646bdae01646d1501e4e40424a19490359b666bbbca
+     local     17132cc46232508330946a536b4a0edad643d7accb611f1f5e4b48193253e2a0
+     local     e1e57867c7c0cf9ac508835a1d1800770d578ae6766fc935dda40628ce229ce0
+     local     mrva_pgdata
+   #+END_SRC
+
+   In container
    #+BEGIN_SRC sh 
      # Start an interactive bash shell inside the running Docker container
      docker exec -it mrva-postgres bash
@@ -626,7 +638,7 @@
      # Connect to the DB using psql
      psql -U mrva -d mrvadb
      {
-         # inside repl
+         # inspect using pg repl
 
          \dt
          #             List of relations
@@ -648,11 +660,19 @@
 
          SELECT * FROM job_status;
 
-    
+         SELECT last_value FROM session_id_seq;
+
+         SELECT * FROM session_id_seq;
+
+         # # may fail if there isn't one
+         # SELECT nextval('session_id_seq');
+
+
      }
+     # inspect from shell
      pg_dump -U mrva -d mrvadb --data-only |less
 
-
+     # 
    #+END_SRC
 
 * Update Container Images

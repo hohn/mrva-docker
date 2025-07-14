@@ -59,19 +59,19 @@ eof
 
 # Submit the MRVA job with the first query
 cd ~/work-gh/mrva/gh-mrva/
-gh-mrva submit --language cpp --session mirva-session-2473 \
+gh-mrva submit --language cpp --session mirva-session-3482 \
           --list mirva-list                                \
           --query ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
 
 # Check the status of the submitted session
-gh-mrva status --session mirva-session-2473
+gh-mrva status --session mirva-session-3482
 
 # Download SARIF files and databases if there are results.  For the current
 # query / database combination there are zero result hence no downloads
 cd ~/work-gh/mrva/gh-mrva/
-gh-mrva download --session mirva-session-2473   \
+gh-mrva download --session mirva-session-3482   \
         --download-dbs                          \
-        --output-dir mirva-session-2473
+        --output-dir mirva-session-3482
 
 
 #*  Set up QLPack for the next query
@@ -106,22 +106,22 @@ eof
 # Submit a new MRVA job with the second query
 cd ~/work-gh/mrva/gh-mrva/
 gh-mrva submit                                      \
-        --language cpp --session mirva-session-2661 \
+        --language cpp --session mirva-session-2899 \
         --list mirva-list                           \
         --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
 
 
 # Check the status of the second session
-gh-mrva status --session mirva-session-2661
+gh-mrva status --session mirva-session-2899
 
-# Download SARIF files and databases for the second query
+# Download databases and sarif for the second query
 cd ~/work-gh/mrva/gh-mrva/
-gh-mrva download --session mirva-session-2661   \
+gh-mrva download --session mirva-session-2899   \
         --download-dbs                          \
-        --output-dir mirva-session-2661
-ls -l mirva-session-2661
+        --output-dir mirva-session-2899
+ls -l *2899*
 
 # Download only SARIF files
-gh-mrva download --session mirva-session-2661   \
-        --output-dir mirva-session-2661
+gh-mrva download --session mirva-session-2899   \
+        --output-dir mirva-session-2899
 
