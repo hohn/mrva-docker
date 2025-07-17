@@ -354,6 +354,8 @@
      #+END_SRC
 
 ** Use gh-mrva container to send request via cli
+*** As shell script
+    In [[./bin/ma.send-request]]
 *** Start container and check gh-mrva tool
     #+BEGIN_SRC sh 
       # Start an interactive bash shell inside the running Docker container
@@ -497,8 +499,6 @@
 
     #+END_SRC
 
-*** As shell script
-    In [[./bin/ma.send-request]]
 
 ** Send request via gui, using vs code
    The following sequence works when run from a local vs code with the custom

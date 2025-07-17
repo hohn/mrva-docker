@@ -106,22 +106,22 @@ eof
 # Submit a new MRVA job with the second query
 cd ~/work-gh/mrva/gh-mrva/
 gh-mrva submit                                      \
-        --language cpp --session mirva-session-2899 \
+        --language cpp --session mirva-session-3901 \
         --list mirva-list                           \
         --query ~/work-gh/mrva/gh-mrva/Fprintf.ql
 
 
 # Check the status of the second session
-gh-mrva status --session mirva-session-2899
+gh-mrva status --session mirva-session-3901
 
 # Download databases and sarif for the second query
 cd ~/work-gh/mrva/gh-mrva/
-gh-mrva download --session mirva-session-2899   \
+gh-mrva download --session mirva-session-3901   \
         --download-dbs                          \
-        --output-dir mirva-session-2899
-ls -l *2899*
+        --output-dir mirva-session-3901
+ls -l *3901*
 
 # Download only SARIF files
-gh-mrva download --session mirva-session-2899   \
-        --output-dir mirva-session-2899
+gh-mrva download --session mirva-session-3901   \
+        --output-dir mirva-session-3901
 
