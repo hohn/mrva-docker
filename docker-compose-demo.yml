@@ -17,9 +17,7 @@ services:
             - mrvastore
         networks:
             - backend
-        env_file:
-            - path: .env.container
-              required: true
+        env_file: .env.container
         # entrypoint: ["tail", "-f", "/dev/null"]
         entrypoint: >
             /bin/sh -c "
@@ -37,9 +35,7 @@ services:
         ports:
             - "9000:9000"
             - "9001:9001"
-        env_file:
-            - path: .env.container
-              required: true
+        env_file: .env.container
         command: server /data/mrvacommander/mrvastore-data --console-address ":9001"
         networks:
             backend:
@@ -113,9 +109,7 @@ services:
             - rabbitmq
             - mrvastore
             - postgres
-        env_file:
-            - path: ./.env.container
-              required: true
+        env_file: ./.env.container
         environment:
             POSTGRES_USER: mrva
             POSTGRES_PASSWORD: mrvapg
@@ -151,9 +145,7 @@ services:
         depends_on:
             - rabbitmq
             - mrvastore
-        env_file:
-            - path: ./.env.container
-              required: true
+        env_file: ./.env.container
         environment:
             - MRVA_HEPC_ENDPOINT=http://hepc:8070
             - MRVA_HEPC_CACHE_DURATION=60
