@@ -166,9 +166,6 @@
             -e http.host -e http.request.uri | grep '/repositories/'
      tshark -r /tmp/foo -Y http -V | less
 
-     tshark -r /tmp/foo -Y 'http.request' -T fields -e http.request.full_uri |\
-         grep '/repositories/'
-
      # should find these
      tshark -r /tmp/foo \
             -Y 'http.request.uri contains "/repos/"' \
@@ -179,9 +176,46 @@
             -T fields -e http.request.uri
    #+END_SRC
 
-** send requests
+** send requests via cli
    In [[./bin/ma.send-request]]
-  
+** send requests via vs code plugin
+   In [[*Send request via gui, using vs code][Send request via gui, using vs code]]
+** strace containers and processes from lima
+   #+BEGIN_SRC sh 
+     # In the lima VM
+
+     # #
+     # # install strace in container, if in-container tracing is wanted
+     # docker exec -it mrva-code-server bash
+     # sudo apt update
+     # sudo apt install -y strace
+
+
+     # 
+     # Find the container's main process PID:
+     docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+     CID=mrva-code-server
+     PID=$(docker inspect --format '{{.State.Pid}}' "$CID")
+     echo $CID $PID
+
+     #
+     # Get the in-container process id.  Example:
+     docker exec mrva-code-server ps -ef | grep -i 'node.*extensionhost'
+     # coder        824      25  2 18:02 ?        00:01:06 /usr/lib/code-server/lib/node --dns-result-order=ipv4first /usr/lib/code-server/lib/vscode/out/bootstrap-fork --type=extensionHost --transformURIs --useHostProxy=false
+     NDID=$(docker exec mrva-code-server ps -ef | grep -i 'node.*extensionhost' | awk '{print($2);}')
+     echo $CID $PID $NDID
+
+     # 
+     # Run strace on the process in the container
+     # using the host's strace
+     sudo nsenter -t "$PID" -n -p \
+          strace -f -tt -s 200 -e trace=connect,sendto,recvfrom -p 824 -o /tmp/strace-extensionhost.log
+
+     # # using the container's strace
+     # sudo nsenter -t "$PID" -n -p -m \
+     #      strace -f -tt -s 200 -e trace=connect,sendto,recvfrom -p 824 -o /tmp/strace-extensionhost.log
+   #+END_SRC
+
 * TODO lima vm
 ** intro
   When dealing with a highly stateful, evolving system, development workflows that
@@ -562,10 +596,10 @@
    Connect to vscode-codeql container at http://localhost:9080/?folder=/home/coder
 
 *** Provide settings 
-    The file
-     : /home/coder/.local/share/code-server/User/settings.json
+     The file
+     : /home/coder/.vscode/settings.json
      #+BEGIN_SRC sh 
-       cat > /home/coder/.local/share/code-server/User/settings.json << EOF
+       cat > /home/coder/.vscode/settings.json << EOF
        {
            "codeQL.runningQueries.numberOfThreads": 2,
            "codeQL.cli.executablePath": "/opt/codeql/codeql",
