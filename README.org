@@ -49,7 +49,7 @@
      newgrp docker
      ln -s  /Users/hohn/work-gh /home/hohn.linux/
 
-     sudo apt install golang-go
+     sudo apt-get install ngrep golang-go tshark postgresql-client-common
 
    #+END_SRC
 
@@ -62,7 +62,7 @@
 
 
      cd ~/work-gh/mrva/mrva-docker/containers/ghmrva/
-     sudo docker build -t client-ghmrva-container:0.4.0 .
+     docker build -t client-ghmrva-container:0.4.0 .
 
 
      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
@@ -136,8 +136,51 @@
      docker cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
 
    #+END_SRC
-
    
+** set up traffic tracing
+   In a separate terminal:
+   #+BEGIN_SRC sh 
+     limactl shell ubu
+
+     # in vm
+     # capture traffic
+     ip link show | grep br-
+     # form:
+     export BR1=br-442ef935d9f8
+     export BR2=br-e2ebd32bfe66
+     sudo tcpdump -i $BR1 -w trace-$BR1.pcap &
+     sudo tcpdump -i $BR2 -w trace-$BR2.pcap &
+
+     # Note docker0 is DOWN
+
+     # send requests elsewhere
+
+     # view full content:
+     cp trace-$BR1.pcap /tmp/foo
+     tshark -r /tmp/foo -Y 'http.request' -T fields -e http.request.method \
+            -e http.host -e http.request.uri | grep '/repositories/'
+     tshark -r /tmp/foo -Y http -V | less
+
+     cp trace-$BR2.pcap /tmp/foo
+     tshark -r /tmp/foo -Y 'http.request' -T fields -e http.request.method \
+            -e http.host -e http.request.uri | grep '/repositories/'
+     tshark -r /tmp/foo -Y http -V | less
+
+     tshark -r /tmp/foo -Y 'http.request' -T fields -e http.request.full_uri |\
+         grep '/repositories/'
+
+     # should find these
+     tshark -r /tmp/foo \
+            -Y 'http.request.uri contains "/repos/"' \
+            -T fields -e http.request.uri
+     # should not find these
+     tshark -r /tmp/foo \
+            -Y 'http.request.uri contains "/repositories/"' \
+            -T fields -e http.request.uri
+   #+END_SRC
+
+** send requests
+   In [[./bin/ma.send-request]]
   
 * TODO lima vm
 ** intro
@@ -511,7 +554,6 @@
       ls -l mirva-session-2261
 
     #+END_SRC
-
 
 ** Send request via gui, using vs code
    The following sequence works when run from a local vs code with the custom

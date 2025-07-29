@@ -59,19 +59,19 @@ eof
 
 # Submit the MRVA job with the first query
 cd ~/work-gh/mrva/gh-mrva/
-gh-mrva submit --language cpp --session mirva-session-3482 \
+gh-mrva submit --language cpp --session mirva-session-4111 \
           --list mirva-list                                \
           --query ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
 
 # Check the status of the submitted session
-gh-mrva status --session mirva-session-3482
+gh-mrva status --session mirva-session-4111
 
 # Download SARIF files and databases if there are results.  For the current
 # query / database combination there are zero result hence no downloads
 cd ~/work-gh/mrva/gh-mrva/
-gh-mrva download --session mirva-session-3482   \
+gh-mrva download --session mirva-session-4111   \
         --download-dbs                          \
-        --output-dir mirva-session-3482
+        --output-dir mirva-session-4111
 
 
 #*  Set up QLPack for the next query
