@@ -96,9 +96,6 @@
      cd /Users/hohn/work-gh/mrva/mrvaserver
      go build
 
-     # Check for running containers
-     docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
-
      # Copy the new binary
      cd /Users/hohn/work-gh/mrva/mrvaserver
      docker cp mrvaserver mrva-server:/usr/local/bin/mrvaserver
@@ -110,9 +107,6 @@
      # compile locally
      cd /Users/hohn/work-gh/mrva/mrvaagent
      go build
-
-     # Look for the agent's name in the process table
-     docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
 
      # Copy the new binary
      cd /Users/hohn/work-gh/mrva/mrvaagent
@@ -128,13 +122,9 @@
      go mod tidy 
      GOOS=linux GOARCH=arm64 go build
 
-     # Look for the gh-mrva name in the process table
-     docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
-
      # Copy the new binary
      cd /Users/hohn/work-gh/mrva/gh-mrva
      docker cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
-
    #+END_SRC
    
 ** set up traffic tracing
