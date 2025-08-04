@@ -125,6 +125,7 @@
      # Copy the new binary
      cd /Users/hohn/work-gh/mrva/gh-mrva
      docker cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
+
    #+END_SRC
    
 ** set up traffic tracing
@@ -756,7 +757,12 @@
          # # may fail if there isn't one
          # SELECT nextval('session_id_seq');
 
-         # cleanup if needed
+         # clear all postgres databases.  This will require restarting the server
+         # container to recreate the tables
+         DROP SCHEMA public CASCADE;
+         CREATE SCHEMA public;
+
+         # or more selectively
          DROP TABLE IF EXISTS  analyze_jobs CASCADE;
          DROP TABLE IF EXISTS  analyze_results CASCADE;
          DROP TABLE IF EXISTS  job_info CASCADE;
