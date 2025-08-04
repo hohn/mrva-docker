@@ -190,7 +190,6 @@
      # sudo apt update
      # sudo apt install -y strace
 
-
      # 
      # Find the container's main process PID:
      docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
@@ -210,6 +209,15 @@
      # using the host's strace
      sudo nsenter -t "$PID" -n -p \
           strace -f -tt -s 200 -e trace=connect,sendto,recvfrom -p 824 -o /tmp/strace-extensionhost.log
+     # or
+     sudo nsenter -t "$PID" -n -p -m \
+          strace -f -tt -s 200 -e trace=connect,sendto,recvfrom,write,read \
+          -p $NDID -o /tmp/strace-extensionhost.log
+     # or trace the parent
+     sudo nsenter -t "$PID" -n -p -m \
+          strace -f -tt -s 200 -e trace=connect,sendto,recvfrom,write,read \
+          -p 7 -o /tmp/strace-parent.log
+
 
      # # using the container's strace
      # sudo nsenter -t "$PID" -n -p -m \
