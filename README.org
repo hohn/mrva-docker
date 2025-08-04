@@ -756,6 +756,12 @@
          # # may fail if there isn't one
          # SELECT nextval('session_id_seq');
 
+         # cleanup if needed
+         DROP TABLE IF EXISTS  analyze_jobs CASCADE;
+         DROP TABLE IF EXISTS  analyze_results CASCADE;
+         DROP TABLE IF EXISTS  job_info CASCADE;
+         DROP TABLE IF EXISTS  job_repo_map CASCADE;
+         DROP TABLE IF EXISTS  job_status CASCADE;
 
      }
      # inspect from shell
