@@ -366,6 +366,8 @@
 
 * Using the Containers
 ** Running the containers
+   The updated / combined instructions are in [[*docker setup and run][docker setup and run]].   The details:
+
    1. Build local container images; follow [[./docker-compose-demo.yml]]
       + client-ghmrva: [[file:containers/ghmrva/README.org::*MRVA cli tools container][MRVA cli tools container]]
       + code-server: [[file:containers/vscode/README.org::*MRVA VS Code server container][MRVA VS Code server container]]
