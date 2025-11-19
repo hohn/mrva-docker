@@ -23,6 +23,205 @@
 #+HTML_HEAD: }
 #+HTML_HEAD: </style>
 
+* TODO Docker on linux with full control
+  Docker Desktop restricts low-level control, especially for tracing inter-container
+  network traffic. To regain full visibility and system-level access, we run Docker
+  on linux
+
+** containerd setup
+   #+BEGIN_SRC sh 
+     # 
+     # Test system using Docker semantics, then migrate to nerdctl
+     # 
+
+     # Install containerd
+     sudo apt install -y containerd runc
+     sudo systemctl enable --now containerd
+
+     # Install nerdctl
+     curl -LO https://github.com/containerd/nerdctl/releases/download/v2.2.0/nerdctl-2.2.0-linux-arm64.tar.gz
+     tar xzf nerdctl-2.2.0-linux-arm64.tar.gz
+     sudo mv nerdctl containerd-rootless*.sh /usr/local/bin/
+
+     containerd-rootless-setuptool.sh install
+     # To control "containerd.service", run: `systemctl --user (start|stop|restart) containerd.service`
+     nerdctl 
+
+     systemctl --user restart containerd.service
+
+     # Install cni bridge
+     sudo mkdir -p /opt/cni/bin
+     curl -LO https://github.com/containernetworking/plugins/releases/download/v1.8.0/cni-plugins-linux-arm64-v1.8.0.tgz
+     sudo tar -C /opt/cni/bin -xzf cni-plugins-linux-arm64-v1.8.0.tgz
+
+     # Test nerdctl substitution for docker
+     nerdctl run hello-world
+   #+END_SRC
+
+** TODO container setup and run
+   #+BEGIN_SRC sh 
+     # 
+     #* Build the containers
+     # 
+     limactl shell ubu
+
+
+     cd ~/work-gh/mrva/mrva-docker/containers/ghmrva/
+     docker build -t client-ghmrva-container:0.4.0 .
+
+
+     cd ~/work-gh/mrva/mrva-docker/containers/vscode/
+     docker build -t code-server-initialized:0.4.0 .
+
+
+     cd ~/work-gh/mrva/mrva-docker/containers/hepc &&\
+         rm -fR ./mrvahepc && cp -r  ../../../mrvahepc .
+     docker build -t mrva-hepc-container:0.4.0 -f Dockerfile .
+
+
+     cd ~/work-gh/mrva/mrva-docker/containers/server/
+     docker build -t mrva-server:0.4.0 .
+
+
+     cd ~/work-gh/mrva/mrva-docker/containers/agent/
+     docker build -t mrva-agent:0.4.0 .
+
+
+     #
+     #* Start the containers
+     cd ~/work-gh/mrva/mrva-docker/
+     docker-compose -f docker-compose-demo.yml down
+     docker ps
+
+     docker-compose -f docker-compose-demo.yml up 
+
+     # 
+     #* update the binaries in a running container
+     #** compile server locally
+     cd /Users/hohn/work-gh/mrva/mrvaserver
+     go build
+
+     # Copy the new binary
+     cd /Users/hohn/work-gh/mrva/mrvaserver
+     docker cp mrvaserver mrva-server:/usr/local/bin/mrvaserver
+
+     # Restart the binary
+     docker exec mrva-server pkill mrvaserver
+
+     #** recompile agent
+     # compile locally
+     cd /Users/hohn/work-gh/mrva/mrvaagent
+     go build
+
+     # Copy the new binary
+     cd /Users/hohn/work-gh/mrva/mrvaagent
+     docker cp mrvaagent mrva-agent:/usr/local/bin/mrvaagent
+
+     # Restart the binary
+     docker exec mrva-agent pkill mrvaagent
+
+     #** gh-mrva
+     # compile locally
+     cd /Users/hohn/work-gh/mrva/gh-mrva
+     go mod edit -replace="github.com/GitHubSecurityLab/gh-mrva=/Users/hohn/work-gh/mrva/gh-mrva"
+     go mod tidy 
+     GOOS=linux GOARCH=arm64 go build
+
+     # Copy the new binary
+     cd /Users/hohn/work-gh/mrva/gh-mrva
+     docker cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
+
+   #+END_SRC
+   
+** TODO set up traffic tracing
+   In a separate terminal:
+   #+BEGIN_SRC sh 
+     limactl shell ubu
+
+     # in vm
+     # capture traffic
+     ip link show | grep br-
+     # form:
+     export BR1=br-442ef935d9f8
+     export BR2=br-e2ebd32bfe66
+     sudo tcpdump -i $BR1 -w trace-$BR1.pcap &
+     sudo tcpdump -i $BR2 -w trace-$BR2.pcap &
+
+     # Note docker0 is DOWN
+
+     # send requests elsewhere
+
+     # view full content:
+     cp trace-$BR1.pcap /tmp/foo
+     tshark -r /tmp/foo -Y 'http.request' -T fields -e http.request.method \
+            -e http.host -e http.request.uri | grep '/repositories/'
+     tshark -r /tmp/foo -Y http -V | less
+
+     cp trace-$BR2.pcap /tmp/foo
+     tshark -r /tmp/foo -Y 'http.request' -T fields -e http.request.method \
+            -e http.host -e http.request.uri | grep '/repositories/'
+     tshark -r /tmp/foo -Y http -V | less
+
+     # should find these
+     tshark -r /tmp/foo \
+            -Y 'http.request.uri contains "/repos/"' \
+            -T fields -e http.request.uri
+     # should not find these
+     tshark -r /tmp/foo \
+            -Y 'http.request.uri contains "/repositories/"' \
+            -T fields -e http.request.uri
+   #+END_SRC
+
+** TODO send requests via cli
+   In [[./bin/ma.send-request]]
+** TODO send requests via vs code plugin
+   In [[*Send request via gui, using vs code][Send request via gui, using vs code]]
+** TODO strace containers and processes from lima
+   #+BEGIN_SRC sh 
+     # In the lima VM
+
+     # #
+     # # install strace in container, if in-container tracing is wanted
+     # docker exec -it mrva-code-server bash
+     # sudo apt update
+     # sudo apt install -y strace
+
+     # 
+     # Find the container's main process PID:
+     docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
+     CID=mrva-code-server
+     PID=$(docker inspect --format '{{.State.Pid}}' "$CID")
+     echo $CID $PID
+
+     #
+     # Get the in-container process id.  Example:
+     docker exec mrva-code-server ps -ef | grep -i 'node.*extensionhost'
+     # coder        824      25  2 18:02 ?        00:01:06 /usr/lib/code-server/lib/node --dns-result-order=ipv4first /usr/lib/code-server/lib/vscode/out/bootstrap-fork --type=extensionHost --transformURIs --useHostProxy=false
+     NDID=$(docker exec mrva-code-server ps -ef | grep -i 'node.*extensionhost' | awk '{print($2);}')
+     echo $CID $PID $NDID
+
+     # 
+     # Run strace on the process in the container
+     # using the host's strace
+     sudo nsenter -t "$PID" -n -p \
+          strace -f -tt -s 200 -e trace=connect,sendto,recvfrom -p 824 -o /tmp/strace-extensionhost.log
+     # or
+     sudo nsenter -t "$PID" -n -p -m \
+          strace -f -tt -s 200 -e trace=connect,sendto,recvfrom,write,read \
+          -p $NDID -o /tmp/strace-extensionhost.log
+     # or trace the parent
+     sudo nsenter -t "$PID" -n -p -m \
+          strace -f -tt -s 200 -e trace=connect,sendto,recvfrom,write,read \
+          -p 7 -o /tmp/strace-parent.log
+
+
+     # # using the container's strace
+     # sudo nsenter -t "$PID" -n -p -m \
+     #      strace -f -tt -s 200 -e trace=connect,sendto,recvfrom -p 824 -o /tmp/strace-extensionhost.log
+   #+END_SRC
+
+
+
 * Lima VM for running Docker with full control
   Docker Desktop restricts low-level control, especially for tracing inter-container
   network traffic. To regain full visibility and system-level access, we run Docker
