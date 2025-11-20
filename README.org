@@ -68,29 +68,7 @@
 
 ** TODO container build and run
    #+BEGIN_SRC sh 
-     # # 
-     # #* Build the containers
-     # # 
-     # cd ~/work-gh/mrva/mrva-docker/containers/ghmrva/
-     # docker build -t client-ghmrva-container:0.4.0 .
-
-     # cd ~/work-gh/mrva/mrva-docker/containers/vscode/
-     # docker build -t code-server-initialized:0.4.0 .
-
-
-     # cd ~/work-gh/mrva/mrva-docker/containers/hepc &&\
-     #     rm -fR ./mrvahepc && cp -r  ../../../mrvahepc .
-     # docker build -t mrva-hepc-container:0.4.0 -f Dockerfile .
-
-
-     # cd ~/work-gh/mrva/mrva-docker/containers/server/
-     # docker build -t mrva-server:0.4.0 .
-
-     # cd ~/work-gh/mrva/mrva-docker/containers/agent/
-     # docker build -t mrva-agent:0.4.0 .
-
      # Build the containers
-
      cd ~/work-gh/mrva/mrva-docker/containers/ghmrva/
      nerdctl --namespace=default build -t client-ghmrva-container:0.4.0 .
 
@@ -107,9 +85,17 @@
      cd ~/work-gh/mrva/mrva-docker/containers/agent/
      nerdctl --namespace=default build -t mrva-agent:0.4.0 .
 
+     # List the containers
+     nerdctl images
+     # 0:$ nerdctl images
+     # REPOSITORY                 TAG       IMAGE ID        CREATED           PLATFORM       SIZE       BLOB SIZE
+     # mrva-agent                 0.4.0     1e69ca523cdd    14 seconds ago    linux/arm64    1.911GB    840.3MB
+     # mrva-server                0.4.0     7a08e0706b52    15 seconds ago    linux/arm64    1.912GB    840.8MB
+     # mrva-hepc-container        0.4.0     0929f23df227    2 minutes ago     linux/arm64    744.6MB    468.6MB
+     # code-server-initialized    0.4.0     d9d13617a0c9    3 minutes ago     linux/arm64    2.852GB    1.158GB
+     # client-ghmrva-container    0.4.0     35b7fa1639c6    14 minutes ago    linux/arm64    1.971GB    881.3MB
 
-
-
+     # XX:
      #
      #* Start the containers
      cd ~/work-gh/mrva/mrva-docker/
