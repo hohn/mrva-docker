@@ -44,10 +44,18 @@
      sudo mv nerdctl containerd-rootless*.sh /usr/local/bin/
 
      containerd-rootless-setuptool.sh install
-     # To control "containerd.service", run: `systemctl --user (start|stop|restart) containerd.service`
      nerdctl 
 
      systemctl --user restart containerd.service
+
+     # Install buildkit
+     cd /usr/local
+     sudo curl -LO https://github.com/moby/buildkit/releases/download/v0.26.1/buildkit-v0.26.1.linux-arm64.tar.gz
+     sudo tar xzf buildkit-v0.26.1.linux-arm64.tar.gz 
+     sudo rm buildkit-v0.26.1.linux-arm64.tar.gz
+
+     containerd-rootless-setuptool.sh install-buildkit-containerd
+     # systemctl --user (start|stop|restart) buildkit.service
 
      # Install cni bridge
      sudo mkdir -p /opt/cni/bin
@@ -58,33 +66,48 @@
      nerdctl run hello-world
    #+END_SRC
 
-** TODO container setup and run
+** TODO container build and run
    #+BEGIN_SRC sh 
-     # 
-     #* Build the containers
-     # 
-     limactl shell ubu
+     # # 
+     # #* Build the containers
+     # # 
+     # cd ~/work-gh/mrva/mrva-docker/containers/ghmrva/
+     # docker build -t client-ghmrva-container:0.4.0 .
 
+     # cd ~/work-gh/mrva/mrva-docker/containers/vscode/
+     # docker build -t code-server-initialized:0.4.0 .
+
+
+     # cd ~/work-gh/mrva/mrva-docker/containers/hepc &&\
+     #     rm -fR ./mrvahepc && cp -r  ../../../mrvahepc .
+     # docker build -t mrva-hepc-container:0.4.0 -f Dockerfile .
+
+
+     # cd ~/work-gh/mrva/mrva-docker/containers/server/
+     # docker build -t mrva-server:0.4.0 .
+
+     # cd ~/work-gh/mrva/mrva-docker/containers/agent/
+     # docker build -t mrva-agent:0.4.0 .
+
+     # Build the containers
 
      cd ~/work-gh/mrva/mrva-docker/containers/ghmrva/
-     docker build -t client-ghmrva-container:0.4.0 .
-
+     nerdctl --namespace=default build -t client-ghmrva-container:0.4.0 .
 
      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
-     docker build -t code-server-initialized:0.4.0 .
+     nerdctl --namespace=default build -t code-server-initialized:0.4.0 .
 
-
-     cd ~/work-gh/mrva/mrva-docker/containers/hepc &&\
-         rm -fR ./mrvahepc && cp -r  ../../../mrvahepc .
-     docker build -t mrva-hepc-container:0.4.0 -f Dockerfile .
-
+     cd ~/work-gh/mrva/mrva-docker/containers/hepc && \
+         rm -fR ./mrvahepc && cp -r ../../../mrvahepc .
+     nerdctl --namespace=default build -t mrva-hepc-container:0.4.0 -f Dockerfile .
 
      cd ~/work-gh/mrva/mrva-docker/containers/server/
-     docker build -t mrva-server:0.4.0 .
-
+     nerdctl --namespace=default build -t mrva-server:0.4.0 .
 
      cd ~/work-gh/mrva/mrva-docker/containers/agent/
-     docker build -t mrva-agent:0.4.0 .
+     nerdctl --namespace=default build -t mrva-agent:0.4.0 .
+
+
 
 
      #
