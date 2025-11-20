@@ -18,7 +18,7 @@ RUN go build .
 # ######################
 # Provide codeql and java
 # 
-FROM ubuntu:24.10 AS runner
+FROM ubuntu:24.04 AS runner
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Build argument for CodeQL version, defaulting to the latest release
