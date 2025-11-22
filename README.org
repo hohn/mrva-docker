@@ -135,73 +135,9 @@
    #+END_SRC
 
    Running the container collection is only needed for local use; docker is fine
-   for that.  For k3s etc., do we need the docker-compose file?
+   for that.  For k3s etc., we don't need the docker-compose file.
 
-   Conversion attempts for docker-compose to nerdctl:
-   #+BEGIN_SRC sh 
-     ###############################################################################
-     # 2. Start/stop using nerdctl compose
-     ###############################################################################
-     cd ~/work-gh/mrva/mrva-docker/
-
-     # stop & remove everything
-     nerdctl --namespace=default compose -f docker-compose-demo.yml down
-
-     # list running containers
-     nerdctl --namespace=default ps
-
-     # start everything (use up -d to suppress log)
-     nerdctl --namespace=default compose -f docker-compose-demo.yml up 
-
-
-     ###############################################################################
-     # Update mrva-server binary
-     ###############################################################################
-     cd ~/work-gh/mrva/mrvaserver
-     go build
-
-     # copy into container
-     nerdctl --namespace=default cp mrvaserver mrva-server:/usr/local/bin/mrvaserver
-
-     # restart binary inside container
-     nerdctl --namespace=default exec mrva-server pkill mrvaserver
-
-
-     ###############################################################################
-     # Update mrva-agent binary
-     ###############################################################################
-     cd ~/work-gh/mrva/mrvaagent
-     go build
-
-     nerdctl --namespace=default cp mrvaagent mrva-agent:/usr/local/bin/mrvaagent
-
-     nerdctl --namespace=default exec mrva-agent pkill mrvaagent
-     ###############################################################################
-     # Update gh-mrva binary
-     ###############################################################################
-     cd ~/work-gh/mrva/gh-mrva
-
-     # ensure replacement path is set
-     go mod edit -replace="github.com/GitHubSecurityLab/gh-mrva=/Users/hohn/work-gh/mrva/gh-mrva"
-     go mod tidy
-
-     GOOS=linux GOARCH=arm64 go build
-
-     nerdctl --namespace=default cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
-
-     # 
-     # Checking logs
-     # 
-     nerdctl --namespace=default logs mrva-server
-     nerdctl --namespace=default logs mrva-agent
-
-     # 
-     # Service restart
-     # 
-     nerdctl --namespace=default compose -f docker-compose-demo.yml restart server
-     nerdctl --namespace=default compose -f docker-compose-demo.yml restart agent
-   #+END_SRC
-
+   Abandon conversion attempts for docker-compose to nerdctl.  Go to k3s.
    
 ** TODO set up traffic tracing
    In a separate terminal:
