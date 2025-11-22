@@ -23,10 +23,7 @@
 #+HTML_HEAD: }
 #+HTML_HEAD: </style>
 
-* TODO Docker on linux with full control
-  Docker Desktop restricts low-level control, especially for tracing inter-container
-  network traffic. To regain full visibility and system-level access, we run Docker
-  on linux
+* TODO Containerd / k3s version for kubernetes deployment
 
 ** containerd setup
    #+BEGIN_SRC sh 
