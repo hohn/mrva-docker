@@ -87,16 +87,8 @@
 
      # List the containers
      nerdctl images
-     # 0:$ nerdctl images
-     # REPOSITORY                 TAG       IMAGE ID        CREATED           PLATFORM       SIZE       BLOB SIZE
-     # mrva-agent                 0.4.0     1e69ca523cdd    14 seconds ago    linux/arm64    1.911GB    840.3MB
-     # mrva-server                0.4.0     7a08e0706b52    15 seconds ago    linux/arm64    1.912GB    840.8MB
-     # mrva-hepc-container        0.4.0     0929f23df227    2 minutes ago     linux/arm64    744.6MB    468.6MB
-     # code-server-initialized    0.4.0     d9d13617a0c9    3 minutes ago     linux/arm64    2.852GB    1.158GB
-     # client-ghmrva-container    0.4.0     35b7fa1639c6    14 minutes ago    linux/arm64    1.971GB    881.3MB
 
      # XX:
-     #
      #* Start the containers
      cd ~/work-gh/mrva/mrva-docker/
      docker-compose -f docker-compose-demo.yml down
@@ -141,6 +133,75 @@
      docker cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
 
    #+END_SRC
+
+   Running the container collection is only needed for local use; docker is fine
+   for that.  For k3s etc., do we need the docker-compose file?
+
+   Conversion attempts for docker-compose to nerdctl:
+   #+BEGIN_SRC sh 
+     ###############################################################################
+     # 2. Start/stop using nerdctl compose
+     ###############################################################################
+     cd ~/work-gh/mrva/mrva-docker/
+
+     # stop & remove everything
+     nerdctl --namespace=default compose -f docker-compose-demo.yml down
+
+     # list running containers
+     nerdctl --namespace=default ps
+
+     # start everything (use up -d to suppress log)
+     nerdctl --namespace=default compose -f docker-compose-demo.yml up 
+
+
+     ###############################################################################
+     # Update mrva-server binary
+     ###############################################################################
+     cd ~/work-gh/mrva/mrvaserver
+     go build
+
+     # copy into container
+     nerdctl --namespace=default cp mrvaserver mrva-server:/usr/local/bin/mrvaserver
+
+     # restart binary inside container
+     nerdctl --namespace=default exec mrva-server pkill mrvaserver
+
+
+     ###############################################################################
+     # Update mrva-agent binary
+     ###############################################################################
+     cd ~/work-gh/mrva/mrvaagent
+     go build
+
+     nerdctl --namespace=default cp mrvaagent mrva-agent:/usr/local/bin/mrvaagent
+
+     nerdctl --namespace=default exec mrva-agent pkill mrvaagent
+     ###############################################################################
+     # Update gh-mrva binary
+     ###############################################################################
+     cd ~/work-gh/mrva/gh-mrva
+
+     # ensure replacement path is set
+     go mod edit -replace="github.com/GitHubSecurityLab/gh-mrva=/Users/hohn/work-gh/mrva/gh-mrva"
+     go mod tidy
+
+     GOOS=linux GOARCH=arm64 go build
+
+     nerdctl --namespace=default cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
+
+     # 
+     # Checking logs
+     # 
+     nerdctl --namespace=default logs mrva-server
+     nerdctl --namespace=default logs mrva-agent
+
+     # 
+     # Service restart
+     # 
+     nerdctl --namespace=default compose -f docker-compose-demo.yml restart server
+     nerdctl --namespace=default compose -f docker-compose-demo.yml restart agent
+   #+END_SRC
+
    
 ** TODO set up traffic tracing
    In a separate terminal:
