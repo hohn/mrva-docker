@@ -69,16 +69,18 @@
 
    Initial manifest in k8s/
 
-* Lima VM for running Docker with full control
+* Lima VM or linux native for running Docker with full control
   Docker Desktop restricts low-level control, especially for tracing inter-container
   network traffic. To regain full visibility and system-level access, we run Docker
-  inside a Lima VM instead.
+  inside a Lima VM (on mac) or on native linux instead.
 
 ** lima vm setup
    #+BEGIN_SRC sh 
+     # on mac
      brew install lima
+     # see https://lima-vm.io/docs/installation/ for linux options
 
-     # create
+     # Create a vm
      cd ~/work-gh/mrva/mrva-docker/lima
      limactl create --name=ubu ubu-docker.yaml
 
@@ -87,12 +89,18 @@
      limactl start ubu
      limactl shell ubu
 
-     # in vm
+     # In vm or linux host
+     sudo apt-get update
+     sudo apt-get install docker.io
      sudo systemctl enable --now docker
-
      sudo systemctl restart docker
      sudo usermod -aG docker hohn
      newgrp docker
+     sudo apt install docker-compose
+
+     # on linux
+     ln -s  /home/hohn/work-gh /home/hohn.linux/
+     # on mac:
      ln -s  /Users/hohn/work-gh /home/hohn.linux/
 
      sudo apt-get install ngrep golang-go tshark postgresql-client-common
@@ -104,29 +112,25 @@
      # 
      #* Build the containers
      # 
+     # enter vm (on mac)
      limactl shell ubu
-
 
      cd ~/work-gh/mrva/mrva-docker/containers/ghmrva/
      docker build -t client-ghmrva-container:0.4.0 .
 
-
      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
      docker build -t code-server-initialized:0.4.0 .
 
-
+     # *slow* in vm with shared folders
      cd ~/work-gh/mrva/mrva-docker/containers/hepc &&\
          rm -fR ./mrvahepc && cp -r  ../../../mrvahepc .
      docker build -t mrva-hepc-container:0.4.0 -f Dockerfile .
 
-
      cd ~/work-gh/mrva/mrva-docker/containers/server/
      docker build -t mrva-server:0.4.0 .
 
-
      cd ~/work-gh/mrva/mrva-docker/containers/agent/
      docker build -t mrva-agent:0.4.0 .
-
 
      #
      #* Start the containers
@@ -137,13 +141,21 @@
      docker-compose -f docker-compose-demo.yml up 
 
      # 
+     #* Populate the db container if needed.
+     # Note: this requires
+     #   /Users/hohn/work-gh/mrva/mrva-open-source-download ,
+     # a large tree not part of this repository.
+     #
+     cd ~/work-gh/mrva/mrvacommander/client/qldbtools && uv sync
+     uv run bin/mc-db-populate-minio < scratch/db-info-3.csv
+
      #* update the binaries in a running container
      #** compile server locally
-     cd /Users/hohn/work-gh/mrva/mrvaserver
+     cd ~/work-gh/mrva/mrvaserver
      go build
 
      # Copy the new binary
-     cd /Users/hohn/work-gh/mrva/mrvaserver
+     cd ~/work-gh/mrva/mrvaserver
      docker cp mrvaserver mrva-server:/usr/local/bin/mrvaserver
 
      # Restart the binary
@@ -151,11 +163,11 @@
 
      #** recompile agent
      # compile locally
-     cd /Users/hohn/work-gh/mrva/mrvaagent
+     cd ~/work-gh/mrva/mrvaagent
      go build
 
      # Copy the new binary
-     cd /Users/hohn/work-gh/mrva/mrvaagent
+     cd ~/work-gh/mrva/mrvaagent
      docker cp mrvaagent mrva-agent:/usr/local/bin/mrvaagent
 
      # Restart the binary
@@ -163,13 +175,13 @@
 
      #** gh-mrva
      # compile locally
-     cd /Users/hohn/work-gh/mrva/gh-mrva
+     cd ~/work-gh/mrva/gh-mrva
      go mod edit -replace="github.com/GitHubSecurityLab/gh-mrva=/Users/hohn/work-gh/mrva/gh-mrva"
      go mod tidy 
      GOOS=linux GOARCH=arm64 go build
 
      # Copy the new binary
-     cd /Users/hohn/work-gh/mrva/gh-mrva
+     cd ~/work-gh/mrva/gh-mrva
      docker cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
 
    #+END_SRC
@@ -261,6 +273,9 @@
      #      strace -f -tt -s 200 -e trace=connect,sendto,recvfrom -p 824 -o /tmp/strace-extensionhost.log
    #+END_SRC
 
+* TODO For distribution, use single fat container or vm
+  The container configuration is only preparation for k8s deployment.  For local
+  use, a vm or "fat" docker container is sufficientr
 * TODO lima vm
 ** intro
   When dealing with a highly stateful, evolving system, development workflows that
@@ -443,14 +458,14 @@
    - server
      #+BEGIN_SRC sh 
        #* Cross-compile locally
-       cd /Users/hohn/work-gh/mrva/mrvaserver
+       cd ~/work-gh/mrva/mrvaserver
        make msla
 
        #* check for running containers
        docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
 
        #* Copy the new binary
-       cd /Users/hohn/work-gh/mrva/mrvaserver
+       cd ~/work-gh/mrva/mrvaserver
        docker cp mrvaserver mrva-server:/usr/local/bin/mrvaserver
 
        #* Restart the binary
@@ -460,14 +475,14 @@
    - agent
      #+BEGIN_SRC sh 
        #* Cross-compile locally
-       cd /Users/hohn/work-gh/mrva/mrvaagent
+       cd ~/work-gh/mrva/mrvaagent
        make mala
 
        #* Look for the agent's name in the process table
        docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
 
        #* Copy the new binary
-       cd /Users/hohn/work-gh/mrva/mrvaagent
+       cd ~/work-gh/mrva/mrvaagent
        docker cp mrvaagent mrva-agent:/usr/local/bin/mrvaagent
 
        #* Restart the binary
@@ -477,7 +492,7 @@
    - gh-mrva
      #+BEGIN_SRC sh 
        #* Cross-compile locally
-       cd /Users/hohn/work-gh/mrva/gh-mrva
+       cd ~/work-gh/mrva/gh-mrva
        go mod edit -replace="github.com/GitHubSecurityLab/gh-mrva=/Users/hohn/work-gh/mrva/gh-mrva"
        go mod tidy 
        GOOS=linux GOARCH=arm64 go build
@@ -486,7 +501,7 @@
        docker ps --format "table {{.ID}}\t{{.Image}}\t{{.Names}}"
 
        #* Copy the new binary
-       cd /Users/hohn/work-gh/mrva/gh-mrva
+       cd ~/work-gh/mrva/gh-mrva
        docker cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
      #+END_SRC
 

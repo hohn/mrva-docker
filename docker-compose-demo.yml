@@ -39,12 +39,9 @@ services:
         # ./containers/ghmrva/Dockerfile
         container_name: mrva-ghmrva
         image: client-ghmrva-container:0.4.0
-        # network_mode: "service:server" # Share the 'server' network namespace
-        networks:
-            - mrva-net
+        network_mode: "service:server" # Share the 'server' network namespace
         environment:
-            - SERVER_URL=http://server:8080
-            - MRVA_SERVER_URL=http://server:8080
+            - SERVER_URL=http://localhost:8080  # 'localhost' now refers to 'server'
 
     code-server:
         # ./containers/vscode/Dockerfile
@@ -114,8 +111,7 @@ services:
             SERVER_PORT: "8080"
         networks:
             - backend
-            - mrva-net
-
+     
     postgres:
         image: postgres:15
         container_name: mrva-postgres
@@ -147,8 +143,6 @@ services:
 
 networks:
     backend:
-        driver: bridge
-    mrva-net:
         driver: bridge
 
 volumes:
