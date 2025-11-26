@@ -1,24 +1,5 @@
-FROM golang:1.22 AS builder
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy the host directory containing the git clone to the container
-COPY mrvaagent.tmp /app/mrvaagent
-
-# Set the environment variables for Go modules
-ENV GO111MODULE=on
-ENV CGO_ENABLED=0
-
-# Build the project
-WORKDIR /app/mrvaagent
-RUN go mod tidy && go build -o /app/mrvaagent-binary
-
-# # Download dependencies
-# RUN go mod download
-
-# Create a runtime container
-FROM ubuntu:24.04 AS runner
+# Runtime container - binary built on host
+FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Build argument for CodeQL version, defaulting to the latest release
@@ -46,8 +27,8 @@ ENV CODEQL_CLI_PATH=/opt/codeql/codeql
 # This env var has no functional effect on CodeQL when running on x86_64 linux
 ENV CODEQL_JAVA_HOME=/usr
 
-# Copy the built binary from the builder stage
-COPY --from=builder /app/mrvaagent-binary /usr/local/bin/mrvaagent
+# Copy the host-built binary
+COPY mrvaagent /usr/local/bin/mrvaagent
 
 # Copy the binary-replacement support script to the container
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh

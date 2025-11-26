@@ -38,15 +38,17 @@ services:
     client-ghmrva:
         # ./containers/ghmrva/Dockerfile
         container_name: mrva-ghmrva
-        image: client-ghmrva-container:0.4.0
+        image: mrva-gh-mrva:0.4.5
         network_mode: "service:server" # Share the 'server' network namespace
         environment:
             - SERVER_URL=http://localhost:8080  # 'localhost' now refers to 'server'
+            - MRVA_SERVER_URL=http://server:8080
+
 
     code-server:
         # ./containers/vscode/Dockerfile
         container_name: mrva-code-server
-        image: code-server-initialized:0.4.0
+        image: code-server-initialized:0.4.5
         ports:
             - "9080:9080"
         # XX: Include codeql binary in code-server (if it's not there already)
@@ -57,7 +59,7 @@ services:
      
     hepc:
         # ./containers/hepc/Dockerfile
-        image: mrva-hepc-container:0.4.0
+        image: mrva-hepc-container:0.4.5
         container_name: mrva-hepc
         hostname: hepc
         command: >-
@@ -89,7 +91,7 @@ services:
      
     server:
         # ./containers/server/Dockerfile
-        image: mrva-server:0.4.0
+        image: mrva-server:0.4.5
         command: [ '--mode=container', '--loglevel=debug' ]
         container_name: mrva-server
         hostname: server
@@ -127,7 +129,7 @@ services:
 
     agent:
         # ./containers/agent/Dockerfile
-        image: mrva-agent:0.4.0
+        image: mrva-agent:0.4.5
         command: [ '--loglevel=debug' ]
         container_name: mrva-agent
         hostname: agent

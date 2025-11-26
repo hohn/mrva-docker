@@ -1,24 +1,7 @@
 # ######################
-# Use an official Golang image as the base image
-FROM golang:1.22 AS builder
-
-# Set the working directory inside the container
-WORKDIR /work-gh/mrva/gh-mrva
-
-# Clone the repository
-RUN git clone https://github.com/hohn/gh-mrva.git . &&\
-    git checkout hohn-0.1.24-demo
-
-# Download dependencies
-RUN go mod download
-
-# Build the Go binary
-RUN go build .
-
-# ######################
 # Provide codeql and java
-# 
-FROM ubuntu:24.04 AS runner
+# Binary built on host
+FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Build argument for CodeQL version, defaulting to the latest release
@@ -54,8 +37,8 @@ ENV CODEQL_JAVA_HOME=/usr
 # Set the working directory inside the final image
 WORKDIR /app
 
-# Copy the binary from the builder stage
-COPY --from=builder /work-gh/mrva/gh-mrva/gh-mrva /usr/local/bin/gh-mrva
+# Copy the host-built binary
+COPY gh-mrva /usr/local/bin/gh-mrva
 
 # Put CodeQL on the PATH
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/codeql

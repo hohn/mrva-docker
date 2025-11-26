@@ -115,22 +115,54 @@
      # enter vm (on mac)
      limactl shell ubu
 
-     cd ~/work-gh/mrva/mrva-docker/containers/ghmrva/
-     docker build -t client-ghmrva-container:0.4.0 .
+     #**  ghmrva
+     cont_dir=~/work-gh/mrva/mrva-docker/containers/ghmrva/
+     build_dir=~/work-gh/mrva/gh-mrva
+     # 
+     cd $build_dir
+     go build
+     # Copy the new binary
+     cp gh-mrva $cont_dir
+     #
+     cd $cont_dir
+     docker build -t mrva-gh-mrva:0.4.5 .
 
+     #**  vscode
      cd ~/work-gh/mrva/mrva-docker/containers/vscode/
-     docker build -t code-server-initialized:0.4.0 .
+     docker build -t code-server-initialized:0.4.5 .
 
+     #**  hepc
      # *slow* in vm with shared folders
-     cd ~/work-gh/mrva/mrva-docker/containers/hepc &&\
-         rm -fR ./mrvahepc && cp -r  ../../../mrvahepc .
-     docker build -t mrva-hepc-container:0.4.0 -f Dockerfile .
+     cd ~/work-gh/mrva/mrva-docker/containers/hepc
+     rm -fR ./mrvahepc &&
+         rsync -a --exclude='*/venv/*' \
+               --exclude='*/\.git/*' \
+               ../../../mrvahepc .
+     docker build -t mrva-hepc-container:0.4.5 -f Dockerfile .
 
-     cd ~/work-gh/mrva/mrva-docker/containers/server/
-     docker build -t mrva-server:0.4.0 .
+     #**  server
+     cont_dir=~/work-gh/mrva/mrva-docker/containers/server/
+     build_dir=~/work-gh/mrva/mrvaserver
+     # 
+     cd $build_dir
+     go build
+     # Copy the new binary
+     cp mrvaserver $cont_dir
+     #
+     cd $cont_dir
+     docker build -t mrva-server:0.4.5 .
 
-     cd ~/work-gh/mrva/mrva-docker/containers/agent/
-     docker build -t mrva-agent:0.4.0 .
+     #**  agent
+     cont_dir=~/work-gh/mrva/mrva-docker/containers/agent/
+     build_dir=~/work-gh/mrva/mrvaagent
+     # 
+     cd $build_dir
+     go build
+     # Copy the new binary
+     cp mrvaagent $cont_dir
+     #
+     cd $cont_dir
+     docker build -t mrva-agent:0.4.5 .
 
      #
      #* Start the containers
@@ -140,14 +172,16 @@
 
      docker-compose -f docker-compose-demo.yml up 
 
-     # 
-     #* Populate the db container if needed.
-     # Note: this requires
-     #   /Users/hohn/work-gh/mrva/mrva-open-source-download ,
-     # a large tree not part of this repository.
-     #
-     cd ~/work-gh/mrva/mrvacommander/client/qldbtools && uv sync
-     uv run bin/mc-db-populate-minio < scratch/db-info-3.csv
+     # # 
+     # #* Populate the db container if needed.
+     # # Note: this requires
+     # #   /Users/hohn/work-gh/mrva/mrva-open-source-download ,
+     # # a large tree not part of this repository.
+     # #
+     # # This is older. With the use of hepc, this should not be necessary.
+     # # 
+     # cd ~/work-gh/mrva/mrvacommander/client/qldbtools && uv sync
+     # uv run bin/mc-db-populate-minio < scratch/db-info-3.csv
 
      #* update the binaries in a running container
      #** compile server locally
