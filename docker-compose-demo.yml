@@ -62,8 +62,11 @@ services:
         image: mrva-hepc-container:0.4.5
         container_name: mrva-hepc
         hostname: hepc
+        volumes:
+            - /home/hohn/work-gh/mrva/mrvahepc/db-collection-host.tmp:/home/hohn/work-gh/mrva/mrvahepc/db-collection-host.tmp:ro
+            - /home/hohn/work-gh/mrva/mrva-open-source-download:/home/hohn/work-gh/mrva/mrva-open-source-download:ro
         command: >-
-            mc-hepc-serve --codeql-db-dir db-collection.tmp
+            host-hepc-serve --codeql-db-dir db-collection-host.tmp
             --host "0.0.0.0"
             --port "8070"
         networks:
