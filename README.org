@@ -108,6 +108,7 @@
    #+END_SRC
 
 ** docker setup and run
+** docker: Build the containers
    #+BEGIN_SRC sh 
      # 
      #* Build the containers
@@ -164,6 +165,9 @@
      cd $cont_dir
      docker build -t mrva-agent:0.4.5 .
 
+   #+END_SRC
+** docker: Start the containers
+   #+BEGIN_SRC sh 
      #
      #* Start the containers
      cd ~/work-gh/mrva/mrva-docker/
@@ -183,6 +187,9 @@
      # cd ~/work-gh/mrva/mrvacommander/client/qldbtools && uv sync
      # uv run bin/mc-db-populate-minio < scratch/db-info-3.csv
 
+   #+END_SRC
+** docker: update the binaries in a running container
+   #+BEGIN_SRC sh 
      #* update the binaries in a running container
      #** compile server locally
      cd ~/work-gh/mrva/mrvaserver
@@ -217,7 +224,6 @@
      # Copy the new binary
      cd ~/work-gh/mrva/gh-mrva
      docker cp gh-mrva mrva-ghmrva:/usr/local/bin/gh-mrva
-
    #+END_SRC
    
 ** set up traffic tracing
