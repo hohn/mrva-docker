@@ -28,11 +28,11 @@ mkdir -p ~/work-gh/mrva/gh-mrva
 cat > ~/work-gh/mrva/gh-mrva/gh-mrva-selection.json <<eof
 {
     "mirva-list": [
-        "Serial-Studio/Serial-Studio",
         "UEFITool/UEFITool",
-        "aircrack-ng/aircrack-ng",
-        "bulk-builder/bulk-builder",
-        "tesseract/tesseract"
+        "inotify-tools/inotify-tools",
+        "loongcollector/loongcollector",
+        "mongoose/mongoose",
+        "xrootd/xrootd"
     ]
 }
 eof
@@ -59,20 +59,20 @@ eof
 
 # Submit the MRVA job with the first query
 cd ~/work-gh/mrva/gh-mrva/
-gh-mrva submit --language cpp --session mirva-session-4789 \
+gh-mrva submit --language cpp --session mirva-session-4890 \
           --list mirva-list                                \
           --query ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
 
 
 # Check the status of the submitted session
-gh-mrva status --session mirva-session-4789
+gh-mrva status --session mirva-session-4890
 
 # Download SARIF files and databases if there are results.  For the current
 # query / database combination there are zero result hence no downloads
 cd ~/work-gh/mrva/gh-mrva/
-gh-mrva download --session mirva-session-4789   \
+gh-mrva download --session mirva-session-4890   \
         --download-dbs                          \
-        --output-dir mirva-session-4789
+        --output-dir mirva-session-4890
 
 
 #*  Set up QLPack for the next query

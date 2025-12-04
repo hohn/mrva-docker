@@ -172,6 +172,7 @@
      #* Start the containers
      cd ~/work-gh/mrva/mrva-docker/
      docker-compose -f docker-compose-demo.yml down
+
      docker ps
 
      docker-compose -f docker-compose-demo.yml up 
@@ -576,48 +577,50 @@
 
 *** Create repository selection list
     #+BEGIN_SRC sh 
-       # Create a directory and generate the JSON file specifying repositories
-       mkdir -p ~/work-gh/mrva/gh-mrva
-       cat > ~/work-gh/mrva/gh-mrva/gh-mrva-selection.json <<eof
-       {
-           "mirva-list": [
-               "Serial-Studio/Serial-Studio",
-               "UEFITool/UEFITool",
-               "aircrack-ng/aircrack-ng",
-               "bulk-builder/bulk-builder",
-               "tesseract/tesseract"
-           ]
-       }
-       eof
-
+      # Create a directory and generate the JSON file specifying repositories
+      mkdir -p ~/work-gh/mrva/gh-mrva
+      # <<insert db-selector-gui output below>>
+      cat > ~/work-gh/mrva/gh-mrva/gh-mrva-selection.json <<eof
+      {
+          "mirva-list": [
+              "Apktool/Apktool",
+              "JCTools/JCTools",
+              "UEFITool/UEFITool",
+              "inotify-tools/inotify-tools",
+              "languagetool/languagetool",
+              "powertools-lambda-python/powertools-lambda-python",
+              "toolbelt/toolbelt"
+          ]
+      }
+      eof
     #+END_SRC
 
 *** Create and submit the first query (FlatBuffersFunc.ql)
     #+BEGIN_SRC sh 
-       # Generate a sample CodeQL query for functions of interest
-       cat > ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql <<eof
-       /**
-        ,* @name pickfun
-        ,* @description Pick function from FlatBuffers
-        ,* @kind problem
-        ,* @id cpp-flatbuffer-func
-        ,* @problem.severity warning
-        ,*/
+      # Generate a sample CodeQL query for functions of interest
+      cat > ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql <<eof
+      /**
+       ,* @name pickfun
+       ,* @description Pick function from FlatBuffers
+       ,* @kind problem
+       ,* @id cpp-flatbuffer-func
+       ,* @problem.severity warning
+       ,*/
 
-       import cpp
+      import cpp
 
-       from Function f
-       where
-         f.getName() = "MakeBinaryRegion" or
-         f.getName() = "microprotocols_add"
-       select f, "definition of MakeBinaryRegion"
-       eof
+      from Function f
+      where
+        f.getName() = "MakeBinaryRegion" or
+        f.getName() = "microprotocols_add"
+      select f, "definition of MakeBinaryRegion"
+      eof
 
-       # Submit the MRVA job with the first query
-       cd ~/work-gh/mrva/gh-mrva/
-       gh-mrva submit --language cpp --session mirva-session-1172 \
-                 --list mirva-list                                \
-                 --query ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
+      # Submit the MRVA job with the first query
+      cd ~/work-gh/mrva/gh-mrva/
+      gh-mrva submit --language cpp --session mirva-session-1172 \
+                --list mirva-list                                \
+                --query ~/work-gh/mrva/gh-mrva/FlatBuffersFunc.ql
 
     #+END_SRC
 

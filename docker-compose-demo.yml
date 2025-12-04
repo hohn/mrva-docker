@@ -66,7 +66,7 @@ services:
             - /home/hohn/work-gh/mrva/mrvahepc/db-collection-host.tmp:/home/hohn/work-gh/mrva/mrvahepc/db-collection-host.tmp:ro
             - /home/hohn/work-gh/mrva/mrva-open-source-download:/home/hohn/work-gh/mrva/mrva-open-source-download:ro
         command: >-
-            host-hepc-serve --codeql-db-dir db-collection-host.tmp
+            host-hepc-serve --codeql-db-dir /home/hohn/work-gh/mrva/mrvahepc/db-collection-host.tmp
             --host "0.0.0.0"
             --port "8070"
         networks:
@@ -111,7 +111,7 @@ services:
             POSTGRES_HOST: postgres
             POSTGRES_PORT: 5432
             MRVA_HEPC_ENDPOINT: http://hepc:8070
-            MRVA_HEPC_CACHE_DURATION: "60"
+            MRVA_HEPC_CACHE_DURATION: "0"
             SERVER_HOST: server
             SERVER_PORT: "8080"
         networks:
@@ -142,7 +142,7 @@ services:
         env_file: ./.env.container
         environment:
             - MRVA_HEPC_ENDPOINT=http://hepc:8070
-            - MRVA_HEPC_CACHE_DURATION=60
+            - MRVA_HEPC_CACHE_DURATION=0
         networks:
             - backend
 
