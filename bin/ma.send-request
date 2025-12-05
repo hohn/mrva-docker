@@ -4,7 +4,6 @@
 docker exec -it mrva-ghmrva bash
 
 # Check if the gh-mrva tool is installed and accessible
-cd ~/work-gh/mrva/gh-mrva/
 gh-mrva -h
 
 
