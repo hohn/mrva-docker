@@ -141,8 +141,13 @@ services:
             - mrvastore
         env_file: ./.env.container
         environment:
-            - MRVA_HEPC_ENDPOINT=http://hepc:8070
-            - MRVA_HEPC_CACHE_DURATION=0
+            POSTGRES_USER: mrva
+            POSTGRES_PASSWORD: mrvapg
+            POSTGRES_DB: mrvadb
+            POSTGRES_HOST: postgres
+            POSTGRES_PORT: 5432
+            MRVA_HEPC_ENDPOINT: http://hepc:8070
+            MRVA_HEPC_CACHE_DURATION: "0"
         networks:
             - backend
 

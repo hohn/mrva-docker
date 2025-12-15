@@ -268,6 +268,12 @@
 
 ** send requests via cli
    In [[./bin/ma.send-request]]
+** send requests via UI
+   #+BEGIN_SRC sh 
+     cd ~/work-gh/mrva/mrvahepc
+     ./bin/host-workflow-ui
+   #+END_SRC
+   
 ** send requests via vs code plugin
    In [[*Send request via gui, using vs code][Send request via gui, using vs code]]
 ** strace containers and processes from lima
