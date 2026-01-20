@@ -1,29 +1,27 @@
-# Use a Python 3.11 image as the base
-FROM python:3.11-slim
+# Thin runtime image for mrvahepc
+# Source tree is staged into the build context by the driver scripts
 
-# Create application root
-RUN mkdir -p /work-gh/mrva
+FROM mrva-platform:0.4.7
 
-# Copy source tree
+# Application root
 WORKDIR /work-gh/mrva
-COPY ./mrvahepc mrvahepc
 
-# Switch to hepc source directory
+# Copy pre-staged source tree
+COPY mrvahepc mrvahepc
+
 WORKDIR /work-gh/mrva/mrvahepc
 
-# We're in a container: install globally
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install .
+# Create isolated Python environment (PEP 668–compliant)
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt && \
+    /opt/venv/bin/pip install .
 
-# Canonical values mount (authoritative, read-only at runtime)
+# Ensure the venv is used at runtime
+ENV PATH=/opt/venv/bin:$PATH
+
+# Canonical values mount
 VOLUME /mrva/values
-
-# Expose service port
 EXPOSE 8070
 
-# Run global service (no path arguments)
-CMD ["hepc-serve-global", \
-     "--host", "0.0.0.0", \
-     "--port", "8070" \
-]
+CMD ["hepc-serve-global", "--host", "0.0.0.0", "--port", "8070"]

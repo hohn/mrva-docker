@@ -1,4 +1,4 @@
-# Use a Python 3.11 image as the base
+# Use a Python 3 image as the base
 FROM python:3.11-slim
 
 # Install git

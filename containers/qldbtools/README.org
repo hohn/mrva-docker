@@ -1,5 +1,5 @@
 * MRVA python tools container
-  Set up Docker image with python 3.11 and pip and the qldbtools.  The targets are
+  Set up Docker image with python 3 and pip and the qldbtools.  The targets are
   in the =Makefile=; most important are
 
   #+BEGIN_SRC sh 
