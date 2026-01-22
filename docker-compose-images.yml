@@ -1,0 +1,128 @@
+services:
+    mrvastore:
+        image: minio/minio:RELEASE.2024-06-11T03-13-30Z
+        container_name: mrvastore
+        hostname: mrvastore
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        env_file: .env.container
+        command: server /data/mrvacommander/mrvastore-data --console-address ":9001"
+        networks:
+            backend:
+                aliases:
+                    - minio.store
+                    - mrvabucket.minio.store
+                    - packs.minio.store
+                    - qldb.minio.store
+                    - results.minio.store
+
+    client-ghmrva:
+        container_name: mrva-ghmrva
+        image: ghcr.io/hohn/mrva-gh-mrva:0.4.7
+        network_mode: "service:server" # Share the 'server' network namespace
+        environment:
+            - SERVER_URL=http://localhost:8080  # 'localhost' now refers to 'server'
+            - MRVA_SERVER_URL=http://server:8080
+
+    hepc:
+        container_name: mrva-hepc
+        image: ghcr.io/hohn/mrva-hepc:0.4.7
+        hostname: hepc
+        # /mrva/values/metadata.sql is required for hepc-serve-global
+        volumes:
+            - ${MRVA_VALUES_PATH:?MRVA_VALUES_PATH must be set}:/mrva/values:ro
+        # host access
+        ports:
+            - "8070:8070"
+        networks:
+            - backend
+        command: >-
+            hepc-serve-global 
+            --host "0.0.0.0"
+            --port "8070" 
+        # for other containers: MRVA_HEPC_ENDPOINT=http://hepc:8070
+
+    rabbitmq:
+        image: rabbitmq:3.13.7-management
+        hostname: rabbitmq
+        container_name: mrva-rabbitmq
+        volumes:
+           - rabbitmq-data:/var/lib/rabbitmq
+        environment:
+            RABBITMQ_DEFAULT_USER: user
+            RABBITMQ_DEFAULT_PASS: password
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        healthcheck:
+          test: rabbitmq-diagnostics check_port_connectivity
+          interval: 30s
+          timeout: 30s
+          retries: 10
+        networks:
+            - backend
+     
+    server:
+        container_name: mrva-server
+        image: ghcr.io/hohn/mrva-server:0.4.7
+        command: [ '--mode=container', '--loglevel=debug' ]
+        hostname: server
+        depends_on:
+            - rabbitmq
+            - mrvastore
+            - postgres
+        env_file: ./.env.container
+        environment:
+            POSTGRES_USER: mrva
+            POSTGRES_PASSWORD: mrvapg
+            POSTGRES_DB: mrvadb
+            POSTGRES_HOST: postgres
+            POSTGRES_PORT: 5432
+            MRVA_HEPC_ENDPOINT: http://hepc:8070
+            MRVA_HEPC_CACHE_DURATION: "0"
+            SERVER_HOST: server
+            SERVER_PORT: "8080"
+        networks:
+            - backend
+     
+    postgres:
+        image: postgres:15
+        container_name: mrva-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: mrva
+            POSTGRES_PASSWORD: mrvapg
+            POSTGRES_DB: mrvadb
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        networks:
+          - backend
+
+    agent:
+        image: ghcr.io/hohn/mrva-agent:0.4.7
+        command: [ '--loglevel=debug' ]
+        container_name: mrva-agent
+        hostname: agent
+        depends_on:
+            - rabbitmq
+            - mrvastore
+        env_file: ./.env.container
+        environment:
+            POSTGRES_USER: mrva
+            POSTGRES_PASSWORD: mrvapg
+            POSTGRES_DB: mrvadb
+            POSTGRES_HOST: postgres
+            POSTGRES_PORT: 5432
+            MRVA_HEPC_ENDPOINT: http://hepc:8070
+            MRVA_HEPC_CACHE_DURATION: "0"
+        networks:
+            - backend
+
+networks:
+    backend:
+        driver: bridge
+
+volumes:
+    pgdata:
+    rabbitmq-data:
