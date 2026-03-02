@@ -1,6 +1,6 @@
 # Thin runtime image for mrvaagent
 
-FROM mrva-platform:0.4.7
+FROM mrva-platform:0.4.8
 
 # Copy prebuilt binary and entrypoint
 COPY mrvaagent /usr/local/bin/mrvaagent

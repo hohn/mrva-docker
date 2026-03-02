@@ -1,7 +1,7 @@
 # Thin runtime image for mrvahepc
 # Source tree is staged into the build context by the driver scripts
 
-FROM mrva-platform:0.4.7
+FROM mrva-platform:0.4.8
 
 # Application root
 WORKDIR /work-gh/mrva
